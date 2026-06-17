@@ -1,0 +1,430 @@
+# SmartCommission — Features, Issues & Roadmap
+
+The most complete, transparent, and easy-to-use incentive compensation platform for sales teams of any size.
+
+---
+
+## Product Vision
+
+SmartCommission is a self-contained incentive compensation management (ICM) platform that enables companies of all sizes to design, calculate, manage, and pay sales commissions accurately and transparently. Built for Sales Operations and Revenue Operations teams, it eliminates spreadsheet-based commission tracking, reduces disputes, and gives every sales rep real-time visibility into their earnings. The platform is designed to serve SMB and mid-market organisations immediately, with the architecture and depth to scale to enterprise.
+
+---
+
+## Platform Roadmap
+
+| Phase | Platform | Status |
+|---|---|---|
+| 1 — MVP (Core Calculation Engine) | Web (Next.js) | ⬜ Planned |
+| 2 — Participant Portal + Reporting | Web (Next.js) | ⬜ Planned |
+| 3 — Integrations + Advanced Analytics | Web (Next.js) + API | ⬜ Planned |
+| 4 — AI + Enterprise Features | Web (Next.js) + API + ML | ⬜ Planned |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js App Router, Tailwind CSS v4, Geist font (next/font/google), lucide-react icons, next-themes (light/dark mode) |
+| Auth | Firebase Auth (email/password, Google OAuth, SAML SSO), session cookies |
+| Database | PostgreSQL (Cloud SQL), Prisma ORM |
+| API | Next.js Route Handlers (REST), OpenAPI 3.0 spec |
+| Background jobs | Cloud Tasks (GCP) |
+| File storage | Cloud Storage (GCP) |
+| CI/CD | Cloud Build → Cloud Run |
+| Monitoring | Cloud Logging, Cloud Monitoring, Error Reporting |
+| Email | Resend |
+| Payments | Stripe (platform billing) |
+
+---
+
+## Pages / Screens
+
+| Route / Screen | Description |
+|---|---|
+| `/` | Marketing landing page with value proposition, pricing, and CTA |
+| `/login` | Sign in with email/password or Google OAuth |
+| `/signup` | Create account — org name, admin email, password |
+| `/onboarding` | Post-signup setup wizard (org → users → first plan → import) |
+| `/dashboard` | Admin/manager overview: pipeline, accruals, team attainment |
+| `/plans` | List of compensation plans |
+| `/plans/new` | Plan builder — step-by-step wizard |
+| `/plans/:id` | Plan detail and rule editor |
+| `/plans/:id/versions` | Plan version history |
+| `/quotas` | Quota assignment grid (by rep/territory/period) |
+| `/territories` | Territory management |
+| `/transactions` | Raw transaction feed (imported from CRM/ERP) |
+| `/calculations` | Calculation run management |
+| `/calculations/:runId` | Calculation run detail with audit trail |
+| `/earnings` | Earnings ledger (admin view: all reps) |
+| `/payments` | Payment run management |
+| `/payments/:runId` | Payment run detail |
+| `/disputes` | Dispute management queue |
+| `/reports` | Pre-built and custom report library |
+| `/reports/builder` | Custom report builder |
+| `/integrations` | CRM/ERP/HRIS connector management |
+| `/settings` | Org settings, roles, permissions, payment schedules |
+| `/settings/api-keys` | API key management |
+| `/portal` | Sales rep portal — earnings, attainment, statements |
+| `/portal/earnings` | Rep earnings dashboard with YTD and period breakdowns |
+| `/portal/statements/:id` | Individual commission statement |
+| `/portal/disputes` | Rep dispute submission and tracking |
+| `/portal/plan` | Plan document view and e-acknowledgment |
+| `/admin/orgs` | Superadmin: all organisations |
+| `/admin/users` | Superadmin: all users |
+
+---
+
+## Core Features
+
+### A. Plan Design & Administration
+
+- **Compensation plan builder** — Visual, step-by-step wizard for creating commission plans. Define plan type, effective dates, eligible participants, quota linkage, credit rules, payout schedule, and approval workflow in a single guided flow. Plans are versioned — every change creates a new version without overwriting history.
+- **Plan types supported** — Commission (straight, tiered, accelerating), bonus pool distribution, Management by Objectives (MBO) with weighted goals, SPIFs (short-term performance incentives), team/overlay incentives, and recognition awards.
+- **Quota management** — Assign quotas at individual, team, territory, and product-line level. Quota periods aligned to plan periods. Quota import via CSV or direct CRM/ERP sync. Quota history maintained for retroactive calculation.
+- **Territory management** — Define territories by geography (country/state/region/postcode), named account lists, industry vertical, or product line. Assign reps to territories with effective dates. Territory changes tracked for credit allocation purposes.
+- **Tiered commission structures** — Define unlimited tiers with attainment thresholds (e.g. 0–50%: 0%, 51–100%: 5%, 101–125%: 8%, 126%+: 12%). Each tier can be a different rate type (flat, percentage, absolute). Tiers apply to the incremental amount within the tier ("progressive") or to the entire amount once a tier is crossed ("retroactive cliff").
+- **Accelerators and decelerators** — Automatically increase commission rate above 100% attainment (accelerators) or decrease rate below a floor threshold (decelerators). Common pattern: 1x rate at 0–100%, 1.5x at 101–125%, 2x at 126%+.
+- **Caps and floors** — Maximum payout cap (absolute dollar or percentage of OTE) per period or per deal. Minimum guarantee floors. Caps can be soft (tracked, reported) or hard (payout truncated).
+- **Clawback rules** — Define clawback triggers: customer cancels within X months, payment not received within X days, fraud/misrepresentation discovered. Clawback can recover full payout, pro-rated payout, or a fixed penalty. Jurisdiction-aware constraints (e.g. California prohibits clawbacks on vested commissions).
+- **Holdback / reserve provisions** — Withhold a percentage of earned commission (e.g. 20%) until the customer reaches a milestone (e.g. 90 days post-close). Released automatically when the milestone triggers.
+- **Draw against commission** — Configure recoverable draws (advance is deducted from future earnings) or non-recoverable draws (floor guarantee with no recovery). Draw reconciliation tracked per pay period.
+- **Advance commission payments** — Pay a portion of estimated commission upon deal close; true-up at end of period when full calculation runs.
+- **Split credit** — Assign multiple reps credit on a single transaction. Supports: percentage splits (primary 60% / overlay 40%), full-credit splits (multiple reps each receive 100%), and multi-level splits (territory rep + national account manager + overlay specialist).
+- **Overlay and specialist credit types** — Define overlay roles (pre-sales, SE, CS) with separate credit rules that don't reduce the primary rep's credit. Overlay rules can be fixed % or quota-linked.
+- **Multi-currency support** — Transactions stored in original currency and base currency. Exchange rates sourced daily from an external provider (configurable: XE, Open Exchange Rates, manual). Plans can pay out in a different currency than the deal currency. Exchange rate lock at deal close date or payment date (configurable).
+- **Effective dating** — Every plan, quota, territory assignment, and rule carries a start and optional end date. Changes are applied prospectively or retroactively based on configuration. System re-calculates affected periods automatically.
+- **Plan versioning** — Every save creates an immutable version snapshot with author, timestamp, and change summary. Versions can be compared side-by-side. Prior versions cannot be edited — only superseded.
+- **Plan templates library** — Pre-built templates for common SaaS and enterprise sales roles: AE (new business), AE (expansion), SDR (meetings booked), CSM (renewal/NRR), Channel partner, Named account. Templates are a starting point — fully customisable.
+- **ASC 606 / IFRS 15 alignment** — Commission cost capitalisation: plans can flag commissions as capitalised (amortised over contract period) vs expensed immediately. Amortisation schedule generated per deal. Supports Finance team's period-end accrual reporting.
+
+### B. Data Integration
+
+- **CRM connectors** — Native, managed connectors for Salesforce, HubSpot, Pipedrive, and Microsoft Dynamics 365. Sync opportunities, closed-won deals, products, accounts, contacts, and custom fields. Field mapping UI with preview. Delta sync (only changed records) on a configurable schedule (every 15 min / hourly / daily).
+- **ERP connectors** — Connectors for SAP S/4HANA, Oracle NetSuite, Xero, and QuickBooks. Pull invoices, payments received, and revenue recognition events. Useful for cash-basis or payment-received commission triggers.
+- **HRIS connectors** — Connectors for Workday, BambooHR, and ADP. Sync headcount: employee hire/termination dates, role, territory, manager hierarchy, quota start dates. Automatically deprovision reps when terminated.
+- **CSV / Excel import** — Upload CSV or XLSX files. Visual field-mapping UI maps source columns to SmartCommission fields. Preview first 20 rows before confirming import. Validation runs before commit: duplicate detection, type checking, referential integrity.
+- **REST API for real-time data feeds** — External systems can push transactions in real time via the public API. Idempotent transaction IDs prevent duplicates. Immediate calculation preview available post-ingest.
+- **Webhook support** — Subscribe to inbound webhook events from CRM (e.g. Salesforce outbound messages on opportunity close). No polling required — event-driven architecture.
+- **Data validation and error reporting** — Every import produces a structured error report: row number, field, error type (missing required field, invalid type, duplicate ID, referential integrity failure). Errors downloadable as CSV. Partial imports supported (valid rows committed, errors skipped with report).
+- **Duplicate detection** — Configurable duplicate rules: exact match on external ID, fuzzy match on deal name + close date + amount. On detection: skip, update, or flag for manual review.
+- **Historical data import** — Bulk import past periods for migration from spreadsheets or legacy systems. Supports backdated transactions with explicit historical-period flags to avoid re-triggering live calculation workflows.
+- **Staging / sandbox environment** — Each organisation has a sandbox that mirrors their production configuration. Test imports, plan changes, and calculation runs without affecting live data. Sandbox can be reset or refreshed from production at any time.
+
+### C. Calculation Engine
+
+- **Rule-based calculation engine** — Deterministic, auditable engine that processes rules sequentially. Not spreadsheet-based — every calculation is code-executed, version-controlled, and replayable. Rules are stored as structured JSON and evaluated against transaction and quota data.
+- **Supported plan types** — Flat rate (% or $ per unit), tiered progressive, tiered retroactive, accelerating/decelerating, bonus pool (allocate a fixed pool by attainment rank), MBO (weighted goal scoring), SPIF (fixed reward on trigger event), team rollup (aggregate team attainment then distribute), and custom formula.
+- **Complex formula builder** — Visual formula editor with a library of functions: `IF`, `SWITCH`, `MIN`, `MAX`, `SUM`, `AVERAGE`, `ROUND`, `LOOKUP`, `DATE_DIFF`, `ATTAINMENT_PCT`, `TIER_RATE`, `SPLIT_CREDIT`, and more. Formulas validated at save time with syntax checking and sample data preview.
+- **Retroactive adjustments** — When a transaction is amended (e.g. deal size changed, close date corrected), the system can re-run the affected period's calculation and produce a delta adjustment record. Adjustments are tracked separately from original earnings and visible in the audit trail.
+- **Team and hierarchy rollup** — Manager quotas and attainment calculated as the sum of all direct reports. Configurable: include/exclude specific subordinates. Supports multi-level hierarchy (rep → regional manager → VP).
+- **Attainment % calculation** — `Attainment = (Actual Bookings / Quota) × 100`. Period-to-date and full-period projections. Handles partial periods (pro-rated quota for mid-period hires).
+- **Credit split calculations** — Multi-rep credits processed atomically: each rep's share is calculated as their allocation % × transaction value, then run through their individual plan rules. Split totals validated to sum to ≤ 100% (or flagged if using full-credit splits that intentionally exceed 100%).
+- **Bonus pool distribution** — Define a fixed budget pool (e.g. $500K for Q2). Distribute based on attainment rank, weighted attainment %, or forced distribution curve. Preview distribution before committing.
+- **Real-time what-if preview** — On any transaction or quota change, show the projected payout impact before saving. Reps can use the what-if calculator in the portal to model "if I close $X more, I'll earn $Y."
+- **Calculation audit trail** — Every earnings record links to a step-by-step audit trail: which transactions were included, which rules fired, what values were used, what the intermediate and final calculations were. No black box — every rep and auditor can trace exactly how a number was derived.
+- **Period management** — Daily, weekly, bi-weekly, monthly, quarterly, and annual calculation periods. Multiple plan periods can coexist (e.g. a monthly commission with a quarterly bonus overlay). Period transitions handled automatically.
+- **Calculation run scheduling** — Automated scheduled runs: nightly delta runs (process new transactions), period-close runs (final calculations for the period), and ad-hoc manual runs. Notifications on completion or failure.
+- **Exception flagging** — Automatically flag anomalies: payout more than 3× the prior period average, attainment above 300%, zero attainment for a rep with transactions, negative earnings after adjustments. Exceptions routed to Finance for review before payment approval.
+- **Performance** — Engine designed to process 10M+ transactions in a single run. Calculations run in parallel worker pools. Incremental processing (only re-calculate affected records on retroactive changes). Benchmark target: 1M transactions processed in under 5 minutes.
+
+### D. Payments & Payroll
+
+- **Payment schedule configuration** — Define payment frequency per plan: monthly (most common), semi-monthly (1st and 15th), bi-weekly, or quarterly. Payment dates configurable with lead time for payroll cutoff.
+- **Payment run management** — Structured workflow: `DRAFT` (calculated, pending review) → `APPROVED` (Finance sign-off) → `EXPORTED` (sent to payroll) → `PAID` (confirmed). Each stage requires explicit action; cannot skip stages.
+- **Payroll system integration** — Export payment files in the native format for: ADP (NACHA/EFT), Workday, MYOB, Xero, and generic CSV. Future: direct API push to payroll systems.
+- **Manual payment adjustments** — Finance can add one-off adjustments to a payment run: correction payments, good-will payments, deductions. Each adjustment requires a reason code and an approver.
+- **Payment holds and releases** — Hold an individual rep's payment (e.g. pending dispute resolution, terminated employee, compliance hold). Held payments accumulate and release in the next eligible run after the hold is lifted.
+- **Draw reconciliation** — Recoverable draws tracked as a balance per rep. Each payment run deducts the outstanding draw balance from gross earnings. Draw balance report shows current exposure per rep.
+- **Advance payment management** — Track advances paid mid-period. True-up at period close: if final earnings < advance paid, the difference is added to the outstanding balance (recoverable) or written off (non-recoverable).
+- **Multi-currency payout** — Reps can be paid in their home currency. Conversion at the payment date exchange rate. Exchange rate variance tracked against the original calculation.
+- **Tax withholding rules** — Configurable withholding rules by country/state: flat supplemental withholding rate (US: 22% federal supplemental), country-specific rates. Integration with payroll system passes gross commission; payroll handles withholding (SmartCommission does not remit taxes).
+- **Payment history and audit** — Full history of every payment to every rep. Searchable by rep, period, plan, payment run. Exportable for payroll reconciliation.
+
+### E. Participant Portal (Rep-facing)
+
+- **Real-time earnings dashboard** — Rep sees their total earned commission YTD, current period earnings, and next estimated payment. Updates in near-real time as transactions are processed. Clear visual breakdown: base salary (if tracked) vs commission vs bonus.
+- **Attainment gauge** — Visual gauge (0–150%+) showing current period attainment vs quota. Colour-coded: red (<50%), amber (50–99%), green (100%+), gold (125%+). Period-to-date and projected full-period attainment shown side by side.
+- **YTD earnings breakdown** — Tabular and chart view of earnings by month and by plan component. Compare YTD to prior year. Export to PDF.
+- **Commission statement by period** — Formal commission statement per pay period: earnings summary, transaction detail, adjustments, gross payout, deductions (draw recovery), net payment. Download as PDF. Legally formatted to meet statement requirements in AU/UK/US.
+- **Deal-level earnings detail** — Every transaction that contributed to earnings shown with: deal name, close date, deal value, credit amount (after splits), commission rate applied, and commission earned. Rep can drill into the calculation audit trail for any deal.
+- **Quota visibility** — Rep sees their quota per period, current attainment, and how many more deals/$ are needed to hit 100%, 125%, 150%. Quota changes are visible with the effective date and reason.
+- **Plan document access and e-acknowledgment** — Rep views their current and historical plan documents. E-acknowledgment required before portal is fully accessible (configurable: optional vs mandatory). Timestamp, IP, and device captured on acknowledgment.
+- **Dispute submission and tracking** — Rep can raise a dispute on any earnings line: select the transaction or period, describe the issue, attach evidence (screenshot, email). Dispute goes into a managed workflow with SLA tracking. Rep sees status updates in real time.
+- **Mobile-responsive design** — Portal fully functional on mobile. Key screens optimised for phone: earnings gauge, recent transactions, dispute form.
+- **Push notifications** — In-app and email notifications: payment processed, dispute status updated, new plan published, quota changed, acknowledgment required.
+- **Leaderboards and gamification** — Opt-in leaderboards: team attainment ranking (anonymised or named, configurable by admin). Badges for milestones: first deal, 100% attainment, President's Club. Privacy controls: reps can opt out of public leaderboards.
+- **Earnings forecast** — ML-powered forecast of full-period payout based on pipeline, historical close rates, and current attainment trajectory. Shown as a range (P10–P90) with a midpoint estimate.
+- **What-if calculator** — Rep inputs: "if I close $X more deals at an average deal size of $Y, what will my commission be?" Runs against their actual plan rules and current attainment. Interactive slider interface.
+
+### F. Manager & Finance Views
+
+- **Team attainment dashboard** — Manager sees all direct reports: name, quota, YTD actual, attainment %, projected full-period attainment, earnings to date, and last-deal-closed date. Sortable and filterable.
+- **Rep performance comparison** — Side-by-side comparison of multiple reps on key metrics: attainment, earnings, deal count, ACV. Trend lines over trailing 12 months.
+- **Pipeline-to-commission projection** — Connect to CRM pipeline data (weighted by stage probability) to project likely commission expense for the current and next period. Scenario modelling: what if close rates increase by 10%?
+- **Commission accrual reports** — Finance sees earned-but-unpaid commission balances for each rep and each period. Formatted for journal entry: debit commission expense, credit commission accrual liability. Export to CSV/Excel for ERP posting.
+- **Forecasted vs actual commissions** — Track the variance between forecasted commission (at period start) and actual commission (at period close). Variance analysis by rep, plan, and territory.
+- **Cost of sales analysis** — Commission expense as % of revenue, per rep, per territory, per product line. Trend over time. Benchmark against targets and industry norms.
+- **Plan effectiveness metrics** — Are the plan mechanics driving the right behaviours? Metrics: % of reps at 100%+, % of reps above threshold to earn (participation rate), earnings distribution (Gini coefficient), over/under payout frequency.
+- **Overpayment / underpayment analysis** — Identify reps who have been historically over- or underpaid due to retroactive adjustments. Exposure summary for Finance: total underpayments owed, total recoverable overpayments.
+- **Budget vs actuals** — Track commission budget (set at the start of the period) vs actual commission expense. Alert when actuals exceed 90% of budget.
+
+### G. Reporting & Analytics
+
+- **Pre-built reports** — Standard library: Earnings by Rep (period), Earnings by Period (trend), Quota Attainment Summary, Plan Cost Analysis, Payment Run Summary, Dispute Resolution Report, Clawback Recovery Report, Draw Balance Report, ASC 606 Capitalisation Schedule.
+- **Custom report builder** — Drag-and-drop report builder. Select dimensions (rep, period, plan, territory, product), metrics (earnings, attainment %, deal count, avg deal size), and filters. Save, share, and schedule reports.
+- **Scheduled report delivery** — Configure any report to run on a schedule (daily, weekly, monthly) and deliver via email as PDF or CSV attachment.
+- **Export formats** — CSV (for Excel/BI tools), Excel (.xlsx), PDF (formatted statements and management reports), JSON (for API consumers).
+- **Interactive dashboards** — Filterable dashboards with drill-down. Click on a rep to see their detail; click on a period to drill into transactions. Date range picker, territory filter, plan filter, and role filter.
+- **Trend analysis** — Month-over-month (MoM), quarter-over-quarter (QoQ), year-over-year (YoY) comparisons. Seasonality visualisation.
+- **Cohort analysis** — Group reps by tenure cohort (month hired) and track earnings trajectory. Useful for understanding ramp time and plan effectiveness for new hires.
+- **AI-powered insights** — Automated insight cards on the dashboard: "Rep X's Q3 earnings are 40% below their Q2 average — anomaly detected", "Plan Y is generating 3× more overpayment adjustments than Plan Z — review recommended", "5 reps are at 95%–99% attainment — at risk of missing target this period."
+
+### H. Compliance & Audit
+
+- **SOX compliance support** — Segregation of duties enforced via RBAC: plan designers cannot approve their own plans; Finance approvers cannot edit calculations they approve. Full calculation audit trail with immutable records. Approval workflows with digital signatures. All of this documented in a SOX controls matrix (exportable).
+- **GDPR / Privacy compliance** — Consent management: reps can view what data is held about them, request correction, and request deletion (subject to retention requirements). Data export in machine-readable format (JSON/CSV). PII masking in logs and admin exports.
+- **Electronic plan acknowledgment** — Reps e-sign their compensation plan with timestamp (ISO 8601 UTC), IP address, device fingerprint, and browser. Acknowledgment stored immutably. Legally equivalent to wet signature in supported jurisdictions.
+- **Dispute resolution workflow** — Formal dispute process: rep raises dispute → manager reviews → Finance reviews → resolution (approved/denied) → rep notified. SLA tracking: each stage has a configurable SLA (e.g. manager must respond within 5 business days). Overdue disputes escalated automatically.
+- **Historical recalculation** — Ability to re-run any past period's calculation (e.g. after a data correction or plan amendment). Historical recalculation creates a new version of the affected earnings records; original records preserved. Delta between old and new visible to auditors.
+- **Change log** — Every create, update, and delete action on every entity is logged with: actor (user ID + email), action type, entity type, entity ID, timestamp, old value (JSON diff), new value (JSON diff), IP address, and session ID.
+- **Role-based access control (RBAC)** — Six roles: SUPER_ADMIN, ADMIN, FINANCE, MANAGER, REP, READ_ONLY. Each role has a defined permission set. Permissions enforced at the API route level. No UI trick can bypass server-side enforcement.
+- **Data retention policies** — Configurable retention periods per data category: earnings records (7 years default for financial compliance), audit logs (7 years), PII (configurable, minimum required by law). Automated deletion runs after retention period expires.
+- **Export for external audit** — Auditors can be granted a temporary READ_ONLY role to access specific periods' data. Export package: calculation runs, earnings records, payment runs, audit logs, plan versions — all in structured JSON and CSV formats.
+
+### I. Workflow & Approvals
+
+- **Plan approval workflow** — Plans go through: `DRAFT` → `REVIEW` → `APPROVED` → `PUBLISHED`. Each transition requires a designated approver (configurable). Approvers receive email + in-app notification. Comments and inline changes tracked per version. Plans cannot be published without completing the approval chain.
+- **Quota approval workflow** — Quotas require approval from the rep's manager (and optionally VP/Finance). Quota disputes raised by reps enter a separate workflow. All quota changes logged with reason codes.
+- **Exception request workflow** — Any payout outside the defined plan rules (e.g. a one-off SPIF, a goodwill payment, a dispute resolution credit) requires a formal exception request: requestor → manager → Finance. Exception approved/denied with notes. Approved exceptions create a manual adjustment record in the payment run.
+- **Dispute management workflow** — See Compliance & Audit section. Full SLA tracking.
+- **Notification system** — In-app notification centre + email for: new plan published, quota assigned/changed, payment processed, dispute update, approval required, exception request status, acknowledgment required, calculation run completed, anomaly detected.
+- **Configurable approval chains** — Admin defines approval chains per workflow type. Chains can be sequential (A then B then C) or parallel (A and B both must approve). Quorum approval supported (any 2 of 3 approvers).
+- **Delegation rules** — Approvers can delegate to a backup approver for a specified date range (out-of-office). Delegations logged. System notifies both delegator and delegate.
+- **SLA tracking** — Every approval task has a due date. Overdue tasks highlighted in the queue (amber at 75% of SLA, red at 100%). Escalation rules: notify next-level approver when SLA breached.
+
+### J. Multi-Org / Multi-Tenant
+
+- **Multiple business units** — A single SmartCommission account can manage multiple organisations or business units (BUs), each with full isolation. Useful for holding companies, PE portfolio companies, and enterprise divisions with separate commission structures.
+- **Tenant isolation** — Each organisation's data is fully isolated at the database row level using `organisationId` on every table. API routes enforce organisation scope. No cross-tenant data leakage is architecturally possible.
+- **Superadmin cross-org visibility** — SmartCommission platform operators have a superadmin console to view all organisations, manage billing, impersonate (with audit log), and investigate issues.
+- **Shared plan templates** — Organisation-level ADMIN can share plan templates to all BUs within a holding-company account. Changes to a shared template prompt BU admins to review and re-publish their plans.
+- **Consolidated reporting** — For holding companies or PE firms: aggregate earnings, accruals, and attainment across all BUs in a single consolidated report. Drill down to individual org from consolidated view.
+
+### K. API & Integrations
+
+- **REST API v1** — Full CRUD for all entities: plans, quotas, territories, transactions, earnings, payments, disputes. See `api-integration.md`.
+- **Webhooks** — All lifecycle events fire webhooks: transaction.created, transaction.updated, calculation.completed, payment.processed, payment.approved, dispute.raised, dispute.resolved, plan.published.
+- **API key management** — Per-organisation API keys with scopes (read, write, admin), optional expiry, and description. Keys shown once at creation.
+- **OAuth 2.0** — Authorization Code + PKCE flow for third-party apps acting on behalf of users. Client Credentials for server-to-server.
+- **Export formats** — JSON, CSV, Excel, XML. All exports respect the caller's permissions.
+- **OpenAPI 3.0 spec** — Machine-readable spec at `/api/v1/openapi.json`. Interactive docs at `/api/docs`. Used to generate client SDKs.
+- **Sandbox environment** — Each org has a sandbox. API keys can be sandbox-scoped. Sandbox data never affects production.
+- **Rate limiting** — Free: 100 req/min. Paid: 1,000 req/min. Enterprise: custom. Standard rate limit headers on every response.
+
+### L. AI & Intelligent Features
+
+- **Earnings forecast** — ML model trained on historical pipeline close rates, seasonal patterns, and current-period activity to forecast full-period commission payout per rep and team. Refreshed daily. Shown as P10/P50/P90 confidence range.
+- **Anomaly detection** — Statistical model flags outlier payouts (>2 standard deviations from rep's trailing 6-month average), impossible attainment (>500%), and duplicate transactions. Anomalies routed to Finance exception queue before payment approval.
+- **Plan optimisation recommendations** — Model different plan structures against historical data: "if you set the accelerator at 110% instead of 100%, projected plan cost increases by 8% but reps achieving 100%+ attainment increases from 34% to 51%." Helps RevOps design more effective plans.
+- **Natural language query** — Ask questions in plain English: "Show me Q2 attainment for enterprise reps in APAC", "Which reps are at risk of missing target this month?", "What is our total commission accrual for December?" Returns a table or chart with the answer.
+- **AI-assisted plan design** — During plan creation, the AI suggests accelerator thresholds, tier breakpoints, and cap levels based on historical attainment distributions and industry benchmarks. Suggestions shown inline with explanations.
+- **Churn risk prediction** — Track rep satisfaction signals: dispute frequency, portal login frequency, earnings-to-OTE ratio trends. Score each rep's churn risk. Alert managers when a high-performing rep shows elevated churn risk signals.
+
+### M. Security & Compliance
+
+- **SSO** — SAML 2.0 and OIDC integration with corporate identity providers (Okta, Azure AD, Google Workspace). SSO available on Growth+ plans.
+- **MFA enforcement** — TOTP (Google Authenticator) and SMS OTP. ADMIN and FINANCE roles can have MFA enforcement mandated by the org admin. Passkey (WebAuthn) support planned.
+- **IP allowlisting** — Restrict portal and API access to specified IP ranges or CIDR blocks. Configurable per role (e.g. Finance must access from office IPs only).
+- **SOC 2 Type II alignment** — Architecture, processes, and controls designed to meet SOC 2 Trust Services Criteria (Security, Availability, Confidentiality). Third-party audit planned for Year 1 post-MVP.
+- **GDPR, CCPA, Australian Privacy Act** — See `legal-compliance.md` for full compliance detail.
+- **Audit log** — Immutable, append-only log of all actions. Stored separately from application data. Exportable for external audit. 7-year retention.
+- **End-to-end encryption** — All data encrypted in transit (TLS 1.3) and at rest (AES-256 via Cloud SQL encryption). Sensitive fields (compensation rates, salary) encrypted at the application layer with a KMS-managed key.
+- **PII masking** — Compensation amounts, deal values, and personal data masked in logs, admin exports, and non-production environments. See `pii-masking.md`.
+
+---
+
+## Feature Status
+
+Status legend: ✅ Done · ⬜ Planned · 🔧 In Progress · — Not applicable
+
+| Feature | Web | API | Phase |
+|---|---|---|---|
+| Plan builder (wizard) | ⬜ | ⬜ | 1 |
+| Tiered commission rules | ⬜ | ⬜ | 1 |
+| Quota management | ⬜ | ⬜ | 1 |
+| Territory management | ⬜ | ⬜ | 1 |
+| Transaction import (CSV) | ⬜ | ⬜ | 1 |
+| Calculation engine (core) | ⬜ | ⬜ | 1 |
+| Calculation audit trail | ⬜ | ⬜ | 1 |
+| Period management | ⬜ | ⬜ | 1 |
+| Split credit | ⬜ | ⬜ | 1 |
+| Multi-currency support | ⬜ | ⬜ | 1 |
+| Payment run management | ⬜ | ⬜ | 1 |
+| Clawback rules | ⬜ | ⬜ | 1 |
+| Draw against commission | ⬜ | ⬜ | 1 |
+| RBAC (6 roles) | ⬜ | ⬜ | 1 |
+| Plan approval workflow | ⬜ | ⬜ | 1 |
+| Participant portal — earnings dashboard | ⬜ | — | 2 |
+| Participant portal — attainment gauge | ⬜ | — | 2 |
+| Participant portal — commission statements | ⬜ | — | 2 |
+| Participant portal — deal-level detail | ⬜ | — | 2 |
+| E-acknowledgment | ⬜ | — | 2 |
+| Dispute submission + workflow | ⬜ | ⬜ | 2 |
+| Manager team dashboard | ⬜ | — | 2 |
+| Pre-built reports library | ⬜ | ⬜ | 2 |
+| Custom report builder | ⬜ | — | 2 |
+| Scheduled report delivery | ⬜ | — | 2 |
+| Commission accrual reports (ASC 606) | ⬜ | ⬜ | 2 |
+| Leaderboards + gamification | ⬜ | — | 2 |
+| What-if calculator | ⬜ | — | 2 |
+| Salesforce connector | ⬜ | ⬜ | 3 |
+| HubSpot connector | ⬜ | ⬜ | 3 |
+| Workday HRIS connector | ⬜ | ⬜ | 3 |
+| REST API v1 (full) | — | ⬜ | 3 |
+| Webhooks | — | ⬜ | 3 |
+| Payroll export (ADP, Xero, MYOB) | ⬜ | ⬜ | 3 |
+| SSO (SAML / OIDC) | ⬜ | — | 3 |
+| Advanced analytics dashboard | ⬜ | — | 3 |
+| Multi-org / multi-tenant | ⬜ | ⬜ | 3 |
+| AI earnings forecast | ⬜ | — | 4 |
+| Anomaly detection | ⬜ | — | 4 |
+| Plan optimisation recommendations | ⬜ | — | 4 |
+| Natural language query | ⬜ | — | 4 |
+| Churn risk prediction | ⬜ | — | 4 |
+| SOC 2 Type II audit | — | — | 4 |
+
+---
+
+## Known Issues
+
+Severity: **Critical** · **High** · **Medium** · **Low**
+Status: **Open** · **In Progress** · **✅ Fixed [date]** · **✅ Verified Non-Issue [date]** · **✅ Partially Fixed [date]**
+Codes: **B** = Bug · **S** = Security · **P** = Performance · **U** = UX · **A** = Accessibility · **I** = Infrastructure · **D** = Data
+
+| Code | Severity | Status | Title | Description |
+|---|---|---|---|---|
+| **I-001** | High | Open | No CI/CD pipeline yet | Cloud Build pipeline not yet configured. Deployments are manual. |
+| **I-002** | Medium | Open | No staging environment | Staging environment not yet provisioned. All testing done locally. |
+| **D-001** | Medium | Open | No database migrations tooling | Prisma migrate workflow not yet established. Schema changes risk data loss. |
+
+---
+
+## Roadmap
+
+Priority: **Critical** · **High** · **Medium** · **Low**
+Status: **Open** · **In Progress** · **✅ DONE [date]** · **✅ Partially DONE [date]**
+
+### Phase 1 — MVP: Core Calculation Engine
+
+| Code | Priority | Status | Title | Description |
+|---|---|---|---|---|
+| **R-001** | Critical | Open | Project initialisation | Set up Next.js App Router project with Tailwind v4, Geist font, Prisma, Firebase Auth, and Cloud Run deployment. |
+| **R-002** | Critical | Open | Database schema + migrations | Implement full Prisma schema per data-model.md. Set up Cloud SQL (PostgreSQL). |
+| **R-003** | Critical | Open | Authentication (Firebase Auth) | Email/password and Google OAuth sign-in. Session cookie middleware. Role-based access guard. |
+| **R-004** | Critical | Open | Multi-tenant organisation model | Create organisation, invite users, assign roles. Every API route scoped to organisationId. |
+| **R-005** | Critical | Open | Plan builder — basic wizard | Step-by-step wizard: plan name, type, effective dates, eligible participants. |
+| **R-006** | Critical | Open | Plan rules engine (tiers, rates, accelerators) | Core rule types: flat rate, tiered progressive, tiered retroactive, accelerator/decelerator. |
+| **R-007** | Critical | Open | Quota management | Create/edit/import quotas by rep, period, and territory. Quota history. |
+| **R-008** | Critical | Open | Transaction import (CSV) | Upload CSV, field mapping UI, validation, import job tracking. |
+| **R-009** | Critical | Open | Calculation engine v1 | Process transactions against plan rules, calculate earnings per rep per period. |
+| **R-010** | Critical | Open | Calculation audit trail | Every earnings record links to step-by-step audit log. |
+| **R-011** | Critical | Open | Split credit support | Multi-rep credit allocation on a single transaction. |
+| **R-012** | Critical | Open | Multi-currency (base + original) | Store transactions in both original and base currency. Exchange rate management. |
+| **R-013** | Critical | Open | Payment run workflow | DRAFT → APPROVED → EXPORTED → PAID lifecycle. |
+| **R-014** | Critical | Open | Clawback rules | Time-based and event-based clawback configuration and enforcement. |
+| **R-015** | Critical | Open | RBAC enforcement | Six roles. All API routes enforce role and organisation scope. |
+| **R-016** | High | Open | Plan approval workflow | DRAFT → REVIEW → APPROVED → PUBLISHED with configurable approvers. |
+| **R-017** | High | Open | Draw against commission | Recoverable and non-recoverable draw configuration, reconciliation per period. |
+| **R-018** | High | Open | Retroactive adjustments | Re-run past period calculations when source data changes. |
+| **R-019** | High | Open | Period management | Support daily/weekly/monthly/quarterly/annual periods. Multiple overlapping periods. |
+| **R-020** | High | Open | Plan versioning + change history | Immutable plan versions. Compare versions. |
+| **R-021** | Medium | Open | Plan templates library | 6 pre-built role templates: AE new biz, AE expansion, SDR, CSM, channel, named account. |
+| **R-022** | Medium | Open | Exception flagging | Anomaly detection on calculation outputs. Route to Finance before payment approval. |
+| **R-023** | Medium | Open | Territory management | Define territories, assign reps with effective dates. |
+| **R-024** | Medium | Open | Holdback / reserve provisions | Withhold % of earnings until milestone. Auto-release. |
+| **R-025** | Medium | Open | Advance commission payments | Pay portion upfront; true-up at period close. |
+
+### Phase 2 — Participant Portal + Reporting
+
+| Code | Priority | Status | Title | Description |
+|---|---|---|---|---|
+| **R-026** | Critical | Open | Participant portal — earnings dashboard | Real-time earnings, attainment gauge, YTD breakdown for reps. |
+| **R-027** | Critical | Open | Commission statements | Formal PDF statements per period. Downloadable. |
+| **R-028** | Critical | Open | Deal-level earnings detail | Rep can trace each transaction's contribution to their earnings. |
+| **R-029** | Critical | Open | E-acknowledgment | Plan doc display, e-sign with timestamp + IP capture. |
+| **R-030** | Critical | Open | Dispute submission + workflow | Rep raises dispute; workflow to manager → Finance → resolution. SLA tracking. |
+| **R-031** | High | Open | Manager team dashboard | All direct reports: quota, actual, attainment %, projected full-period. |
+| **R-032** | High | Open | Commission accrual reports | Finance: earned-but-unpaid balances, formatted for journal entry. ASC 606 amortisation. |
+| **R-033** | High | Open | Pre-built reports library | 9 standard reports: earnings, quota attainment, plan cost, payment run, dispute, clawback, draw, capitalisation. |
+| **R-034** | High | Open | Custom report builder | Drag-and-drop builder. Save, share, schedule. Export CSV/Excel/PDF. |
+| **R-035** | High | Open | What-if calculator (rep) | Rep models "if I close X more at $Y ACV, I earn $Z." |
+| **R-036** | High | Open | Earnings forecast (basic) | Rule-based projection of full-period payout based on current trajectory. |
+| **R-037** | Medium | Open | Leaderboards + gamification | Opt-in team attainment leaderboard. Milestone badges. Privacy controls. |
+| **R-038** | Medium | Open | Push notifications (email + in-app) | Payment processed, dispute update, new plan, quota change, acknowledgment required. |
+| **R-039** | Medium | Open | Pipeline-to-commission projection | Manager view: project commission expense from CRM pipeline. |
+| **R-040** | Medium | Open | Budget vs actuals tracking | Commission budget set at period start; track vs actual. Alert at 90%. |
+| **R-041** | Medium | Open | Quota visibility for reps | Rep sees quota history, changes, and reason codes. |
+| **R-042** | Medium | Open | Interactive analytics dashboards | Filterable dashboards with drill-down, date range picker, territory/plan filter. |
+
+### Phase 3 — Integrations + Advanced Analytics
+
+| Code | Priority | Status | Title | Description |
+|---|---|---|---|---|
+| **R-043** | Critical | Open | Salesforce CRM connector | Sync opportunities, closed-won deals, accounts, products. Field mapping UI. Delta sync. |
+| **R-044** | Critical | Open | REST API v1 (full public API) | Full CRUD for all entities. OpenAPI spec. Sandbox support. |
+| **R-045** | Critical | Open | Webhooks | All lifecycle events. HMAC signing. Retry with backoff. 72hr replay. |
+| **R-046** | High | Open | HubSpot CRM connector | Native connector for HubSpot deals and contacts. |
+| **R-047** | High | Open | Payroll export (ADP, Xero, MYOB) | Payment file export in payroll-native formats. |
+| **R-048** | High | Open | SSO — SAML 2.0 and OIDC | Enterprise identity provider integration. Okta, Azure AD, Google Workspace. |
+| **R-049** | High | Open | Workday HRIS connector | Sync employee records, org hierarchy, role changes. |
+| **R-050** | High | Open | BambooHR HRIS connector | Sync for SMB customers using BambooHR. |
+| **R-051** | Medium | Open | Pipedrive CRM connector | Native connector for Pipedrive. |
+| **R-052** | Medium | Open | Microsoft Dynamics 365 connector | Connector for Microsoft-centric customers. |
+| **R-053** | Medium | Open | NetSuite ERP connector | Pull invoices and payments received for payment-basis commission triggers. |
+| **R-054** | Medium | Open | Xero ERP connector | Pull invoices for SMB customers on Xero. |
+| **R-055** | Medium | Open | Historical data import (migration) | Bulk import past periods from spreadsheets or legacy ICM systems. |
+| **R-056** | Medium | Open | Trend analysis reports | MoM, QoQ, YoY trend charts. Seasonality visualisation. |
+| **R-057** | Medium | Open | Cohort analysis | Rep cohort earnings trajectory by tenure. |
+| **R-058** | Medium | Open | Multi-org / multi-BU support | Holding company / PE firm: multiple orgs in one account. Consolidated reporting. |
+| **R-059** | Medium | Open | IP allowlisting | Restrict portal/API access by IP/CIDR. |
+| **R-060** | Low | Open | Webhook event replay UI | UI to inspect and replay webhook deliveries from the dashboard. |
+| **R-061** | Low | Open | ADP HRIS connector | Sync headcount from ADP Workforce Now. |
+| **R-062** | Low | Open | QuickBooks ERP connector | Pull payments for SMB customers on QuickBooks. |
+
+### Phase 4 — AI + Enterprise Features
+
+| Code | Priority | Status | Title | Description |
+|---|---|---|---|---|
+| **R-063** | High | Open | AI earnings forecast (ML) | ML model trained on pipeline, historical close rates, seasonality. P10/P50/P90 range. |
+| **R-064** | High | Open | Anomaly detection (ML) | Statistical outlier detection on payouts. Auto-flag to Finance. |
+| **R-065** | High | Open | Plan optimisation recommendations | Model different plan structures against historical data. Scenario comparison. |
+| **R-066** | High | Open | Natural language query | Plain-English queries answered with tables/charts. Powered by LLM. |
+| **R-067** | Medium | Open | AI-assisted plan design | Suggest accelerator thresholds, tier breakpoints, and caps based on history. |
+| **R-068** | Medium | Open | Churn risk prediction | Score rep churn risk from satisfaction signals. Alert managers. |
+| **R-069** | Medium | Open | SOC 2 Type II audit | Third-party SOC 2 audit engagement. |
+| **R-070** | Medium | Open | MFA enforcement (admin mandate) | Org admin can enforce MFA for ADMIN/FINANCE roles. |
+| **R-071** | Medium | Open | Passkey / WebAuthn support | Passwordless authentication for supported devices. |
+| **R-072** | Medium | Open | Bonus pool distribution (advanced) | Forced distribution curves. Quartile-based allocation. |
+| **R-073** | Low | Open | DMCA / privacy request portal | Self-serve portal for data subject access requests (DSAR). |
+| **R-074** | Low | Open | Consolidated cross-org reporting | PE/holding company consolidated earnings and accrual view. |
+| **R-075** | Low | Open | SOX controls matrix export | Export a structured SOX controls mapping for enterprise compliance teams. |
+
+---
+
+## QA Gaps
+
+- [ ] Calculation engine: test all plan types with edge cases (zero quota, 0% attainment, multi-currency rounding, retroactive adjustments crossing period boundaries)
+- [ ] Split credit: test splits summing to <100%, exactly 100%, and full-credit splits >100%
+- [ ] Clawback: test time-based, event-based, and partial recovery scenarios
+- [ ] Draw reconciliation: test recoverable and non-recoverable draw across multiple periods
+- [ ] Multi-currency: test exchange rate changes between calculation date and payment date
+- [ ] E-acknowledgment: test timestamp + IP capture under different network conditions
+- [ ] Dispute workflow: test all state transitions including SLA breach and escalation
+- [ ] Payment run: test hold/release, manual adjustments, and multi-currency payout
+- [ ] RBAC: test all six roles for each API route to confirm no privilege escalation
+- [ ] Retroactive adjustments: test re-calculation accuracy and audit trail completeness
+- [ ] CSV import: test malformed files, duplicate rows, missing required fields, 100K+ row files
+- [ ] Portal e-acknowledgment: test legal validity requirements per jurisdiction (AU, US, UK)
+- [ ] What-if calculator: validate against actual calculation engine output for accuracy
+- [ ] AI forecast: backtest accuracy on historical data before going live
