@@ -1,0 +1,403 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organisation {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  baseCurrency String   @default("AUD")
+  timezone     String   @default("Australia/Sydney")
+  status       String   @default("ACTIVE") // ACTIVE | SUSPENDED | CANCELLED
+  plan         String   @default("TRIAL")  // TRIAL | STARTER | GROWTH | ENTERPRISE
+  trialEndsAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users             User[]
+  compensationPlans CompensationPlan[]
+  quotas            Quota[]
+  territories       Territory[]
+  transactions      Transaction[]
+  calculationRuns   CalculationRun[]
+  earningsRecords   EarningsRecord[]
+  paymentRuns       PaymentRun[]
+  disputes          Dispute[]
+
+  @@map("organisations")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  firebaseUid    String    @unique
+  email          String
+  name           String
+  role           String    @default("REP") // ADMIN | FINANCE | MANAGER | REP | READ_ONLY
+  managerId      String?
+  manager        User?     @relation("Reports", fields: [managerId], references: [id])
+  reports        User[]    @relation("Reports")
+  status         String    @default("ACTIVE") // ACTIVE | INACTIVE | TERMINATED
+  hireDate       DateTime?
+  isSuperAdmin   Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  planParticipants PlanParticipant[]
+  quotas           Quota[]
+  territories      TerritoryAssignment[]
+  earningsRecords  EarningsRecord[]
+  payments         Payment[]
+  disputes         Dispute[]
+
+  @@unique([organisationId, email])
+  @@map("users")
+  @@index([organisationId])
+  @@index([firebaseUid])
+}
+
+model CompensationPlan {
+  id             String    @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  type           String    // COMMISSION | BONUS | MBO | SPIF | TEAM | RECOGNITION
+  status         String    @default("DRAFT") // DRAFT | REVIEW | APPROVED | PUBLISHED | ARCHIVED
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  version        Int       @default(1)
+  currency       String    @default("AUD")
+  createdById    String
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  rules            PlanRule[]
+  participants     PlanParticipant[]
+  earningsRecords  EarningsRecord[]
+
+  @@map("compensation_plans")
+  @@index([organisationId])
+  @@index([organisationId, status])
+}
+
+model PlanRule {
+  id          String   @id @default(cuid())
+  planId      String
+  plan        CompensationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  type        String   // FLAT_RATE | TIERED_PROGRESSIVE | TIERED_RETROACTIVE | ACCELERATOR | CAP | FLOOR | CLAWBACK | HOLDBACK | DRAW | SPLIT
+  sortOrder   Int      @default(0)
+  config      Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("plan_rules")
+  @@index([planId])
+}
+
+model PlanParticipant {
+  id            String   @id @default(cuid())
+  planId        String
+  plan          CompensationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime @default(now())
+
+  @@unique([planId, userId])
+  @@map("plan_participants")
+}
+
+model Quota {
+  id             String    @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User @relation(fields: [userId], references: [id])
+  territoryId    String?
+  period         String    // e.g. "2026-Q1"
+  periodStart    DateTime
+  periodEnd      DateTime
+  amount         Decimal   @db.Decimal(15, 2)
+  currency       String    @default("AUD")
+  version        Int       @default(1)
+  status         String    @default("DRAFT") // DRAFT | APPROVED | LOCKED
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("quotas")
+  @@index([organisationId])
+  @@index([organisationId, userId, period])
+}
+
+model Territory {
+  id             String   @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name           String
+  type           String   // GEOGRAPHIC | NAMED_ACCOUNT | VERTICAL | PRODUCT
+  definition     Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  assignments TerritoryAssignment[]
+
+  @@map("territories")
+  @@index([organisationId])
+}
+
+model TerritoryAssignment {
+  id            String    @id @default(cuid())
+  territoryId   String
+  territory     Territory @relation(fields: [territoryId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User @relation(fields: [userId], references: [id])
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@map("territory_assignments")
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  organisationId  String
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  externalId      String?
+  sourceSystem    String   @default("MANUAL") // MANUAL | SALESFORCE | HUBSPOT | CSV | API
+  type            String   @default("DEAL")  // DEAL | RENEWAL | EXPANSION | SERVICE | OTHER
+  amount          Decimal  @db.Decimal(15, 2)
+  currency        String
+  amountBase      Decimal  @db.Decimal(15, 2)
+  baseCurrency    String
+  exchangeRate    Decimal  @db.Decimal(10, 6) @default(1)
+  closeDate       DateTime
+  recognitionDate DateTime?
+  dealName        String
+  accountName     String?
+  productName     String?
+  metadata        Json?
+  importedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creditAllocations CreditAllocation[]
+
+  @@unique([organisationId, externalId, sourceSystem])
+  @@map("transactions")
+  @@index([organisationId])
+  @@index([organisationId, closeDate])
+}
+
+model CreditAllocation {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  userId        String
+  planId        String
+  creditPercent Decimal     @db.Decimal(5, 2)
+  creditAmount  Decimal     @db.Decimal(15, 2)
+  creditType    String      @default("PRIMARY") // PRIMARY | OVERLAY | SPLIT
+  createdAt     DateTime    @default(now())
+
+  @@map("credit_allocations")
+  @@index([transactionId])
+  @@index([userId])
+}
+
+model CalculationRun {
+  id                    String   @id @default(cuid())
+  organisationId        String
+  organisation          Organisation @relation(fields: [organisationId], references: [id])
+  period                String
+  periodStart           DateTime
+  periodEnd             DateTime
+  status                String   @default("PENDING") // PENDING | RUNNING | COMPLETED | FAILED
+  type                  String   @default("SCHEDULED") // SCHEDULED | ADHOC | RETROACTIVE
+  transactionsProcessed Int      @default(0)
+  earningsCreated       Int      @default(0)
+  errorsCount           Int      @default(0)
+  errorDetails          Json?
+  initiatedById         String
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime @default(now())
+
+  earningsRecords EarningsRecord[]
+
+  @@map("calculation_runs")
+  @@index([organisationId])
+  @@index([organisationId, period])
+}
+
+model EarningsRecord {
+  id               String   @id @default(cuid())
+  organisationId   String
+  organisation     Organisation @relation(fields: [organisationId], references: [id])
+  calculationRunId String
+  calculationRun   CalculationRun @relation(fields: [calculationRunId], references: [id])
+  userId           String
+  user             User @relation(fields: [userId], references: [id])
+  planId           String
+  plan             CompensationPlan @relation(fields: [planId], references: [id])
+  period           String
+  grossEarnings    Decimal  @db.Decimal(15, 2)
+  adjustments      Decimal  @db.Decimal(15, 2) @default(0)
+  netEarnings      Decimal  @db.Decimal(15, 2)
+  currency         String
+  status           String   @default("DRAFT") // DRAFT | APPROVED | PAID | DISPUTED
+  version          Int      @default(1)
+  auditTrail       Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  payments  Payment[]
+  disputes  Dispute[]
+
+  @@map("earnings_records")
+  @@index([organisationId])
+  @@index([organisationId, userId, period])
+}
+
+model PaymentRun {
+  id             String    @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  period         String
+  status         String    @default("DRAFT") // DRAFT | APPROVED | EXPORTED | PAID
+  totalAmount    Decimal   @db.Decimal(15, 2) @default(0)
+  currency       String
+  approvedById   String?
+  approvedAt     DateTime?
+  exportedById   String?
+  exportedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  payments Payment[]
+
+  @@map("payment_runs")
+  @@index([organisationId])
+}
+
+model Payment {
+  id               String     @id @default(cuid())
+  paymentRunId     String
+  paymentRun       PaymentRun @relation(fields: [paymentRunId], references: [id])
+  userId           String
+  user             User @relation(fields: [userId], references: [id])
+  earningsRecordId String
+  earningsRecord   EarningsRecord @relation(fields: [earningsRecordId], references: [id])
+  grossAmount      Decimal    @db.Decimal(15, 2)
+  drawDeduction    Decimal    @db.Decimal(15, 2) @default(0)
+  netAmount        Decimal    @db.Decimal(15, 2)
+  currency         String
+  status           String     @default("PENDING") // PENDING | HELD | PAID | CANCELLED
+  holdReason       String?
+  paidAt           DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@map("payments")
+  @@index([paymentRunId])
+  @@index([userId])
+}
+
+model Dispute {
+  id               String    @id @default(cuid())
+  organisationId   String
+  organisation     Organisation @relation(fields: [organisationId], references: [id])
+  raisedById       String
+  raisedBy         User @relation(fields: [raisedById], references: [id])
+  earningsRecordId String?
+  earningsRecord   EarningsRecord? @relation(fields: [earningsRecordId], references: [id])
+  transactionId    String?
+  status           String    @default("OPEN") // OPEN | UNDER_REVIEW | RESOLVED | REJECTED
+  description      String
+  evidence         Json?
+  resolution       String?
+  resolvedById     String?
+  resolvedAt       DateTime?
+  slaDeadline      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("disputes")
+  @@index([organisationId])
+  @@index([raisedById])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  userEmail   String?
+  sessionId   String?
+  ipAddress   String?
+  userAgent   String?
+  tenantId    String?
+  action      String
+  entityType  String
+  entityId    String?
+  changes     Json?
+  metadata    Json?
+  outcome     String   @default("SUCCESS")
+  requestId   String?
+  createdAt   DateTime @default(now())
+
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([tenantId])
+  @@index([tenantId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model SecurityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  userEmail   String?
+  ipAddress   String?
+  userAgent   String?
+  tenantId    String?
+  event       String
+  severity    String   @default("INFO")
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  @@map("security_logs")
+  @@index([userId])
+  @@index([tenantId])
+  @@index([event])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model ApiKey {
+  id             String    @id @default(cuid())
+  organisationId String
+  name           String
+  keyPrefix      String    @unique // "sc_" prefix, stored for lookup
+  keyHash        String    // bcrypt hash of the full key
+  scopes         String[]  @default(["read"])
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdById    String
+  createdAt      DateTime  @default(now())
+
+  @@map("api_keys")
+  @@index([organisationId])
+  @@index([keyPrefix])
+}
