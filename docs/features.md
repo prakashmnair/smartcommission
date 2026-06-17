@@ -306,7 +306,19 @@ Codes: **B** = Bug · **S** = Security · **P** = Performance · **U** = UX · *
 |---|---|---|---|---|
 | **I-001** | High | Open | No CI/CD pipeline yet | Cloud Build pipeline not yet configured. Deployments are manual. |
 | **I-002** | Medium | Open | No staging environment | Staging environment not yet provisioned. All testing done locally. |
+| **I-003** | High | Open | Cloud SQL instance not provisioned | Database not yet created in GCP. Blocking all development. |
+| **I-004** | High | Open | Cloud Run service not deployed | Next.js app not yet deployed. No production environment. |
+| **I-005** | Medium | Open | Firebase project not configured | Firebase project not yet set up for production auth. |
 | **D-001** | Medium | Open | No database migrations tooling | Prisma migrate workflow not yet established. Schema changes risk data loss. |
+| **B-001** | Critical | Open | No application code exists — all features planned only | `apps/web/` directory does not exist. Zero implemented code. Project is documentation-only at this stage. |
+| **S-001** | High | Open | Superuser pattern not yet implemented | `isSuperAdmin()` helper, self-revoke protection, and superadmin console not yet built. Required by CLAUDE.md standards. |
+| **S-002** | High | Open | SecurityLog model not yet implemented | CLAUDE.md requires `SecurityLog` Prisma model and `lib/security-log.ts`. Not yet built. |
+| **S-003** | High | Open | lib/audit.ts and lib/security-log.ts not yet implemented | Audit and security logging utilities required before any API routes are built. |
+| **S-004** | High | Open | lib/pii.ts not yet implemented | PII masking utilities (maskEmail, maskName, maskPhone, maskIp, scrubPii) not yet built. |
+| **U-001** | High | Open | No application UI built | All UI described in user-journeys.md and features.md is planned only. No screens exist. |
+| **A-001** | Medium | Open | Accessibility not yet testable | No application code to audit for WCAG 2.1 AA compliance. Must be verified on implementation. |
+| **P-001** | Medium | Open | No performance benchmarks established | Calculation engine performance targets (1M transactions < 5 minutes) not yet verifiable without implementation. |
+| **D-002** | Medium | Open | SecurityLog not in data model | `data-model.md` has `AuditLog` but is missing the `SecurityLog` model required by CLAUDE.md audit-logging standard. |
 
 ---
 
@@ -409,6 +421,23 @@ Status: **Open** · **In Progress** · **✅ DONE [date]** · **✅ Partially DO
 | **R-073** | Low | Open | DMCA / privacy request portal | Self-serve portal for data subject access requests (DSAR). |
 | **R-074** | Low | Open | Consolidated cross-org reporting | PE/holding company consolidated earnings and accrual view. |
 | **R-075** | Low | Open | SOX controls matrix export | Export a structured SOX controls mapping for enterprise compliance teams. |
+
+---
+
+### Phase 0 — Pre-Implementation (New — added 2026-06-18)
+
+| Code | Priority | Status | Title | Description |
+|---|---|---|---|---|
+| **R-076** | Critical | Open | Create Next.js App Router project scaffold | `npx create-next-app@latest apps/web` with Tailwind v4, Geist font, Prisma, next-themes. Follow design-system.md exactly. |
+| **R-077** | Critical | Open | Implement superuser pattern | `isSuperAdmin()` helper hardcoding prakashmnair@gmail.com; self-revoke protection; superadmin console route group. See `admin/docs/templates/superuser.md`. |
+| **R-078** | Critical | Open | Add SecurityLog Prisma model | `SecurityLog` model required by CLAUDE.md. Add to `prisma/schema.prisma` alongside `AuditLog`. Update `data-model.md`. |
+| **R-079** | Critical | Open | Implement lib/audit.ts and lib/security-log.ts | Utility functions for audit and security logging. Required before any API route development. See `admin/docs/templates/audit-logging.md`. |
+| **R-080** | Critical | Open | Implement lib/pii.ts | PII masking utilities: maskEmail, maskName, maskPhone, maskIp, scrubPii. Required before any logging or export implementation. |
+| **R-081** | Critical | Open | Implement lib/request-context.ts | Extract IP, user-agent, request ID from every request for audit logging. |
+| **R-082** | Critical | Open | GCP infrastructure provisioning | Create Cloud SQL instance, Cloud Run service, Cloud Storage buckets, Cloud Tasks queues, Secret Manager secrets, Firebase project. See `gcp-setup.md`. |
+| **R-083** | Critical | Open | Publish Terms of Service, Privacy Policy, Cookie Policy | Required before any public launch. Engage legal review. See `legal-compliance.md`. |
+| **R-084** | High | Open | Sign DPAs with all sub-processors | GCP, Stripe, Resend, Open Exchange Rates. Required for GDPR compliance. See `legal-compliance.md`. |
+| **R-085** | High | Open | Implement cookie consent banner | Required for EU/UK users. Needed before any analytics or non-essential cookies. |
 
 ---
 

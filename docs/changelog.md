@@ -5,6 +5,31 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-18 (Session 2 — Expert Review)
+
+### Added
+- `docs/runbook.md` — operational runbook: local dev setup, deployment, database migrations, secrets management, nightly calc run monitoring, exchange rate refresh, common failure modes, backup/recovery, incident response.
+- `docs/knowledge-graph.md` — Mermaid system architecture diagram, ER diagram, feature mindmap, deployment architecture diagram, and RBAC permission hierarchy diagram.
+- `docs/env-vars.md` — complete list of all environment variables, Secret Manager mapping, local dev template.
+- `docs/pii-masking.md` — PII data inventory, masking strategy implementations (maskEmail, maskName, maskIp, maskPhone, scrubPii), log scrubbing rules, admin view masking behaviour, export masking policy, GDPR right-to-erasure procedure.
+- `docs/api.md` — full internal API route reference: all Next.js Route Handlers with method, path, auth, description, and role requirements.
+- `docs/gcp-setup.md` — GCP infrastructure specification: Cloud Run, Cloud SQL, Cloud Storage, Cloud Tasks, Cloud Scheduler, Secret Manager, Firebase, Cloud Build, IAM roles, DNS, cost estimate.
+- `docs/test-cases.csv` — 75 test cases covering authentication, RBAC, multi-tenancy, plan builder, calculation engine, payment run, dispute workflow, rep portal, security, PII masking, performance, accessibility, and legal compliance.
+- `qa/prompts/01_signup_onboarding.md` — QA browser prompt for signup and onboarding flow.
+- `qa/prompts/02_plan_builder.md` — QA browser prompt for plan builder and approval workflow.
+- `qa/prompts/03_rep_portal.md` — QA browser prompt for rep portal.
+- `qa/prompts/04_finance_payment_run.md` — QA browser prompt for finance payment run workflow.
+- `qa/prompts/05_security_rbac.md` — QA browser prompt for security and RBAC verification.
+- `docs/review/smartcommission_review_20260618000000.md` — full timestamped expert review.
+
+### Changed
+- `docs/features.md` — added 12 new known issues (I-003 through I-005, B-001, S-001 through S-004, U-001, A-001, P-001, D-002); added Phase 0 pre-implementation roadmap items (R-076 through R-085).
+- `docs/data-model.md` — added `SecurityLog` model (required by CLAUDE.md audit-logging standard) to schema diagram and table definitions.
+- `docs/decisions.md` — added ADR-006 (separate AuditLog and SecurityLog models) and ADR-007 (Firebase Auth with server-side session cookies).
+- `docs/security.md` — added SR-013 (SecurityLog not implemented), SR-014 (superuser pattern not implemented), SR-015 (no Prisma organisationId middleware yet).
+
+---
+
 ## 2026-06-18
 
 ### Added

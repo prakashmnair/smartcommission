@@ -216,6 +216,19 @@ erDiagram
     string sessionId
     DateTime createdAt
   }
+  SecurityLog {
+    string id PK
+    string organisationId FK
+    string userId FK
+    string userEmail
+    string event
+    string severity
+    string ipAddress
+    string requestId
+    json metadata
+    boolean gcpLogged
+    DateTime createdAt
+  }
   Integration {
     string id PK
     string organisationId FK
@@ -291,6 +304,7 @@ erDiagram
   Organisation ||--o{ CalculationRun : "owns"
   Organisation ||--o{ PaymentRun : "owns"
   Organisation ||--o{ AuditLog : "logs"
+  Organisation ||--o{ SecurityLog : "security-logs"
   Organisation ||--o{ Integration : "has"
   Organisation ||--o{ ApiKey : "has"
   User }o--o| User : "manager"
@@ -745,6 +759,36 @@ Maps to: `audit_logs` / Prisma model `AuditLog`
 | `sessionId` | `String` | NULLABLE | Session identifier |
 | `requestId` | `String` | NULLABLE | HTTP request correlation ID |
 | `createdAt` | `DateTime` | default now, NOT NULL | Immutable — never updated |
+
+---
+
+### SecurityLog
+
+Maps to: `security_logs` / Prisma model `SecurityLog`
+
+Required by the CLAUDE.md audit-logging standard. Tracks authentication, authorisation, and permission-change events separately from the general audit log for tamper-evident storage.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `String` | PK, cuid | Primary key |
+| `organisationId` | `String` | NULLABLE | Tenant scope (null for platform-level events) |
+| `userId` | `String` | NULLABLE | User involved (null for pre-auth events) |
+| `userEmail` | `String` | NULLABLE | Denormalised email (preserved if user deleted) |
+| `event` | `String` | NOT NULL | `LOGIN_SUCCESS` / `LOGIN_FAILURE` / `LOGOUT` / `SUPERADMIN_GRANTED` / `SUPERADMIN_REVOKED` / `PASSWORD_RESET` / `EMAIL_CHANGED` / `MFA_ENABLED` / `MFA_DISABLED` / `API_KEY_CREATED` / `API_KEY_REVOKED` / `DATA_EXPORTED` / `UNAUTHORIZED_ACCESS` / `IMPERSONATION_STARTED` / `IMPERSONATION_ENDED` |
+| `severity` | `String` | NOT NULL, default 'INFO' | `INFO` / `WARNING` / `CRITICAL` |
+| `ipAddress` | `String` | NULLABLE | Client IP address |
+| `userAgent` | `String` | NULLABLE | Browser/client user agent |
+| `requestId` | `String` | NULLABLE | HTTP request correlation ID |
+| `metadata` | `Json` | NULLABLE | Additional event context (e.g. targetUserId for impersonation, reason for superadmin grant) |
+| `gcpLogged` | `Boolean` | default false | Whether this event was also written to GCP Cloud Logging (for CRITICAL events) |
+| `createdAt` | `DateTime` | default now, NOT NULL | Immutable — never updated |
+
+**Notes:**
+- Append-only: no UPDATE or DELETE operations permitted.
+- CRITICAL events (SUPERADMIN_GRANTED, SUPERADMIN_REVOKED, IMPERSONATION_STARTED) are additionally written to GCP Cloud Logging (stdout JSON) for tamper-evident storage.
+- Retention: 3 years minimum. On account deletion: set userId null, userEmail '[deleted]' — never hard-delete.
+- Index on `(organisationId, createdAt)` for time-range queries.
+- Index on `(event, severity)` for security dashboard queries.
 
 ---
 

@@ -220,3 +220,61 @@ Exchange rates are sourced daily from a configurable provider (Open Exchange Rat
 - Store rates in the `exchange_rates` table; never fetch rates dynamically during a calculation run (use cached rates only — ensures reproducibility).
 - For plan configuration: add a `exchangeRateLockDate` setting (CLOSE_DATE / PAYMENT_DATE / IMPORT_DATE).
 - Build a "rate not found" exception in the calculation engine that flags the transaction for manual review rather than silently using a wrong rate.
+
+---
+
+## ADR-006: Separate AuditLog and SecurityLog Models
+
+**Date:** 2026-06-18
+**Status:** Accepted
+
+### Context
+
+The CLAUDE.md standard requires both `AuditLog` and `SecurityLog` Prisma models. The question is whether these should be a single table (with a type discriminator) or two separate tables.
+
+**Option 1: Single table** — All events in one `logs` table with a `logType` column (AUDIT / SECURITY). Simple schema; harder to enforce separate retention periods and separate access controls.
+
+**Option 2: Separate tables** — `AuditLog` for application-level changes (CRUD on plans, calculations, payments) and `SecurityLog` for security events (logins, permission changes, impersonation). More complex schema; cleaner separation of concerns; enables separate retention policies and separate RBAC controls.
+
+### Decision
+
+Use **separate tables** (Option 2). `AuditLog` and `SecurityLog` serve different purposes and different audiences:
+- `AuditLog` is for operational audit (Finance, compliance review, SOX controls matrix).
+- `SecurityLog` is for security monitoring (SUPER_ADMIN, security officers, SIEM integration).
+
+CRITICAL `SecurityLog` events (SUPERADMIN_GRANTED, IMPERSONATION_STARTED) are additionally written to GCP Cloud Logging for tamper-evident off-database storage.
+
+### Consequences
+
+- Two separate Prisma models to maintain, but with independent retention rules (7yr audit vs 3yr security).
+- Superadmin UI needs two separate filterable/searchable log viewer tabs.
+- Security log queries are faster because the table is narrower and has fewer rows (security events are less frequent than every CRUD operation).
+
+---
+
+## ADR-007: Firebase Auth with Server-Side Session Cookies (Not JWT in Browser)
+
+**Date:** 2026-06-18
+**Status:** Accepted
+
+### Context
+
+Firebase Authentication provides ID tokens (JWTs) to the client after login. The question is how to handle these on the server for API authentication:
+
+**Option 1: Pass Firebase ID token on every request** — Client sends the Firebase ID token as a `Bearer` token in the `Authorization` header on every API call. Server verifies with Firebase Admin SDK on every request. Simple; but ID tokens are short-lived (1 hour), client must handle refresh, tokens are accessible to JavaScript (XSS risk if stored in localStorage).
+
+**Option 2: Exchange for server-side session cookie** — On login, client sends Firebase ID token to the server. Server verifies it, then issues its own HttpOnly session cookie (via Firebase `auth.createSessionCookie()`). Client uses the cookie for all subsequent requests. Cookie is HttpOnly and Secure — not accessible to JavaScript.
+
+### Decision
+
+Use **Option 2: server-side session cookies**. The key reasons:
+- HttpOnly + Secure cookie prevents XSS token theft (ID tokens in localStorage are a common vulnerability).
+- Session cookies can be explicitly revoked server-side on logout or account suspension (`auth.revokeRefreshTokens()`).
+- Session lifetime is configurable (7 days default) and consistent.
+- Standard web session semantics familiar to the Next.js middleware.
+
+### Consequences
+
+- Slightly more complex authentication flow (one extra round-trip to exchange token for cookie).
+- SameSite=Strict cookie may interfere with some SSO redirect flows (documented in SR-011).
+- Server-side session validation on every API request has negligible performance impact (Firebase Admin SDK caches the JWKS keys).

@@ -1,6 +1,6 @@
 # SmartCommission — Legal & Regulatory Compliance
 
-Last reviewed: 2026-06-18
+Last reviewed: 2026-06-18 (Session 2 — Expert Review)
 Next review due: 2026-09-18 (quarterly)
 
 ---
@@ -22,8 +22,8 @@ If a specific law cannot be fully complied with, the product **must not be relea
 | European Union | GDPR | Partial — data mapping incomplete | Compensation data may qualify as sensitive data requiring explicit consent or legitimate interest documentation. DPAs with sub-processors not yet signed. |
 | United States — California | CCPA / CPRA | Partial — not assessed for employees | CCPA covers California employees as of 2023 (CPRA). Commission data is personal information. Employee privacy notice required. |
 | Australia | Privacy Act 1988 + APPs | Partial — APP 3 consent review needed | APP 3 requires consent for collection. Commission data is sensitive (financial) — enhanced protections may apply under future reforms. |
-| United Kingdom | UK GDPR | Not Assessed | Equivalent to EU GDPR; same gaps likely apply. |
-| Canada | PIPEDA / Law 25 (Quebec) | Not Assessed | Employee data covered; commission data is personal information. |
+| United Kingdom | UK GDPR | Partial — same gaps as EU GDPR | UK GDPR mirrors EU GDPR post-Brexit. Commission data = personal data. Same DPA/lawful basis documentation gaps apply. UK ICO is the supervisory authority. PAYE implications for commission payments (see Section 3). |
+| Canada | PIPEDA / Law 25 (Quebec) | Not Assessed — flag if Canadian users sign up | Employee personal information covered by PIPEDA. Quebec Law 25 has additional requirements (privacy impact assessment). Not targeting Canada in Phase 1; monitor for Canadian signups. |
 | Brazil | LGPD | Not Assessed | Not targeting Brazil market in Phase 1. |
 | India | DPDP Act 2023 | Not Assessed | Not targeting India market in Phase 1. |
 | China | PIPL | Blocked — geo-restricted | Cannot comply with PIPL data localisation requirements. Not targeting China market. |
