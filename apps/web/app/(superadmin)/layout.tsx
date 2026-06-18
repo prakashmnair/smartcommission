@@ -2,12 +2,13 @@ import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/auth/session'
 import { isSuperAdmin } from '@/lib/auth/superadmin'
 import Link from 'next/link'
-import { Building2, Users, ScrollText, Shield } from 'lucide-react'
+import { Building2, Users, ScrollText, Shield, Newspaper } from 'lucide-react'
 
 const navItems = [
   { href: '/admin/orgs', icon: Building2, label: 'Organisations' },
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/logs', icon: ScrollText, label: 'Audit Logs' },
+  { href: '/admin/release-notes', icon: Newspaper, label: 'Release Notes' },
 ]
 
 export default async function SuperadminLayout({ children }: { children: React.ReactNode }) {

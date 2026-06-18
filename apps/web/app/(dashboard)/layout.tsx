@@ -3,8 +3,9 @@ import { getSessionUser } from '@/lib/auth/session'
 import Link from 'next/link'
 import {
   LayoutDashboard, FileText, ArrowLeftRight, Target, Calculator,
-  DollarSign, CreditCard, AlertCircle, BarChart2, Settings, Database, BarChart3, ScrollText
+  DollarSign, CreditCard, AlertCircle, Settings, Database, BarChart3, ScrollText
 } from 'lucide-react'
+import WhatsNewNavLink from '@/components/WhatsNewNavLink'
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -49,6 +50,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {label}
             </Link>
           ))}
+          <WhatsNewNavLink />
         </nav>
 
         {/* User */}
