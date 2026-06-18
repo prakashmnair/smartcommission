@@ -12,6 +12,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [ssoChecked, setSsoChecked] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  async function checkSsoDomain(emailValue: string) {
+    const domain = emailValue.split('@')[1]
+    if (!domain) return
+    try {
+      const res = await fetch(`/api/auth/sso/lookup?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+      if (data.sso && data.orgSlug) {
+        router.push(`/api/auth/sso/${data.orgSlug}/authorize`)
+        return
+      }
+    } catch {
+      // Ignore lookup errors — fall through to password login
+    }
+    setSsoChecked(true)
+    setShowPassword(true)
+  }
+
+  async function handleEmailBlur() {
+    if (!email || ssoChecked) return
+    await checkSsoDomain(email)
+  }
 
   async function createSession(idToken: string) {
     const res = await fetch('/api/auth/session', {
@@ -97,7 +121,8 @@ export default function LoginPage() {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={e => { setEmail(e.target.value); setSsoChecked(false); setShowPassword(false) }}
+                onBlur={handleEmailBlur}
                 required
                 autoComplete="email"
                 placeholder="you@company.com"
@@ -105,30 +130,33 @@ export default function LoginPage() {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 dark:text-slate-100"
-              />
+          {showPassword && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className="w-full pl-9 pr-3 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900 dark:text-slate-100"
+                />
+              </div>
             </div>
-          </div>
+          )}
           <button
-            type="submit"
+            type={showPassword ? 'submit' : 'button'}
+            onClick={showPassword ? undefined : handleEmailBlur}
             disabled={loading}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full" />
             ) : null}
-            Sign in
+            {showPassword ? 'Sign in' : 'Continue'}
           </button>
         </form>
 

@@ -27,6 +27,7 @@ model Organisation {
   earningsRecords   EarningsRecord[]
   paymentRuns       PaymentRun[]
   disputes          Dispute[]
+  ssoConfig         SsoConfig?
 
   @@map("organisations")
 }
@@ -400,4 +401,97 @@ model ApiKey {
   @@map("api_keys")
   @@index([organisationId])
   @@index([keyPrefix])
+}
+
+model SsoConfig {
+  id             String       @id @default(cuid())
+  organisationId String       @unique
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  protocol       String       @default("SAML")  // SAML | OIDC
+  // SAML fields
+  idpEntityId    String?
+  idpSsoUrl      String?
+  idpCertificate String?
+  idpMetadataXml String?
+  // OIDC fields
+  oidcDiscoveryUrl    String?
+  oidcClientId        String?
+  oidcClientSecretEnc String?  // AES-256-GCM encrypted
+  oidcScopes          String[] @default(["openid", "email", "profile"])
+  // SP identity
+  spEntityId     String
+  spAcsUrl       String
+  // Email domain enforcement
+  emailDomain    String
+  forceSso       Boolean  @default(false)
+  // State
+  isEnabled      Boolean  @default(false)
+  isVerified     Boolean  @default(false)
+  // IdP mode
+  isIdpEnabled   Boolean  @default(false)
+  idpClients     Json?
+  // Audit
+  createdById    String
+  updatedById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("sso_configs")
+  @@index([organisationId])
+  @@index([emailDomain])
+}
+
+model SavedQuery {
+  id             String   @id @default(cuid())
+  organisationId String
+  name           String
+  description    String?
+  sql            String
+  parameters     Json?
+  tags           String[]
+  isPublished    Boolean  @default(false)
+  publishedAt    DateTime?
+  publishedById  String?
+  visibility     String   @default("ADMIN")  // ADMIN | ORG_MEMBERS | SHARED_LINK
+  shareToken     String?  @unique
+  reportName     String?
+  reportDesc     String?
+  createdById    String
+  updatedById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastRunAt      DateTime?
+  runCount       Int      @default(0)
+
+  runs QueryRun[]
+
+  @@map("saved_queries")
+  @@index([organisationId])
+  @@index([organisationId, isPublished])
+  @@index([shareToken])
+}
+
+model QueryRun {
+  id             String      @id @default(cuid())
+  organisationId String
+  savedQueryId   String?
+  savedQuery     SavedQuery? @relation(fields: [savedQueryId], references: [id], onDelete: SetNull)
+  sql            String
+  parameters     Json?
+  status         String      @default("PENDING")  // PENDING | RUNNING | COMPLETED | FAILED | CANCELLED
+  rowCount       Int?
+  columnNames    String[]
+  executionMs    Int?
+  errorMessage   String?
+  exportFormat   String?
+  exportedAt     DateTime?
+  createdById    String
+  createdAt      DateTime    @default(now())
+  completedAt    DateTime?
+
+  @@map("query_runs")
+  @@index([organisationId])
+  @@index([savedQueryId])
+  @@index([createdById])
+  @@index([createdAt])
 }

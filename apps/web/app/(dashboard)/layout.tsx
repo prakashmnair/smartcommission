@@ -3,7 +3,7 @@ import { getSessionUser } from '@/lib/auth/session'
 import Link from 'next/link'
 import {
   LayoutDashboard, FileText, ArrowLeftRight, Target, Calculator,
-  DollarSign, CreditCard, AlertCircle, BarChart2, Settings
+  DollarSign, CreditCard, AlertCircle, BarChart2, Settings, Database, BarChart3
 } from 'lucide-react'
 
 const navItems = [
@@ -15,7 +15,8 @@ const navItems = [
   { href: '/earnings', icon: DollarSign, label: 'Earnings' },
   { href: '/payments', icon: CreditCard, label: 'Payments' },
   { href: '/disputes', icon: AlertCircle, label: 'Disputes' },
-  { href: '/reports', icon: BarChart2, label: 'Reports' },
+  { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/query-console', icon: Database, label: 'Query Console' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ]
 
