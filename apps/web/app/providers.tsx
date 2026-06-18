@@ -1,6 +1,10 @@
 'use client'
 import { ThemeProvider } from 'next-themes'
 import { useEffect } from 'react'
+import { ToastProvider } from '@/lib/toast'
+import { ConfirmProvider } from '@/lib/confirm'
+import { Toaster } from '@/components/ui/Toaster'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -11,7 +15,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      {children}
+      <ToastProvider>
+        <ConfirmProvider>
+          {children}
+          <Toaster />
+          <ConfirmDialog />
+        </ConfirmProvider>
+      </ToastProvider>
     </ThemeProvider>
   )
 }

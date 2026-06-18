@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Plus, ArrowLeftRight } from 'lucide-react'
+import { useToast } from '@/lib/toast'
 
 type Transaction = {
   id: string
@@ -18,6 +19,7 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showAdd, setShowAdd] = useState(false)
+  const toast = useToast()
 
   // Add form state
   const [dealName, setDealName] = useState('')
@@ -50,7 +52,7 @@ export default function TransactionsPage() {
       setShowAdd(false)
       setDealName(''); setAmount(''); setCloseDate(''); setAccountName('')
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error')
+      toast.error(err instanceof Error ? err.message : 'Error')
     } finally {
       setAdding(false)
     }

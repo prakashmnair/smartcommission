@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, Suspense } from 'react'
 import { Plus, Eye, EyeOff, Pencil, Trash2, X, Check } from 'lucide-react'
+import { useConfirm } from '@/lib/confirm'
 
 type ReleaseNote = {
   id: string
@@ -115,6 +116,7 @@ function TenantReleaseNotesContent() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const confirm = useConfirm()
 
   function load() {
     setLoading(true)
@@ -188,7 +190,8 @@ function TenantReleaseNotesContent() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this release note?')) return
+    const ok = await confirm({ title: 'Delete release note', message: 'This action cannot be undone.', confirmLabel: 'Delete', variant: 'danger' })
+    if (!ok) return
     setDeleting(id)
     try {
       const res = await fetch(`/api/release-notes/tenant/${id}`, { method: 'DELETE' })

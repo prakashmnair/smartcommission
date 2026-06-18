@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Shield, ShieldOff } from 'lucide-react'
+import { useToast } from '@/lib/toast'
 
 type User = {
   id: string
@@ -18,6 +19,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [working, setWorking] = useState<string | null>(null)
+  const toast = useToast()
 
   useEffect(() => {
     fetch('/api/superadmin/users')
@@ -38,7 +40,7 @@ export default function AdminUsersPage() {
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, isSuperAdmin: !current } : u))
       } else {
         const data = await res.json()
-        alert(data.error ?? 'Failed')
+        toast.error(data.error ?? 'Failed')
       }
     } finally {
       setWorking(null)
