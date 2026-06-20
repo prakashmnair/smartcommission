@@ -1,0 +1,31 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/1028287218164/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-actions-deploy@smartcommission-prod.iam.gserviceaccount.com
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Submit Cloud Build
+        run: |
+          gcloud builds submit . \
+            --config=smartcommission/cloudbuild.yaml \
+            --project=smartcommission-prod \
+            --substitutions="COMMIT_SHA=${{ github.sha }}"
