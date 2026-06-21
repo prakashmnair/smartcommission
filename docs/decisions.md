@@ -278,3 +278,49 @@ Use **Option 2: server-side session cookies**. The key reasons:
 - Slightly more complex authentication flow (one extra round-trip to exchange token for cookie).
 - SameSite=Strict cookie may interfere with some SSO redirect flows (documented in SR-011).
 - Server-side session validation on every API request has negligible performance impact (Firebase Admin SDK caches the JWKS keys).
+
+---
+
+## ADR-008: Dedicated SuperAdmin Table (Separate from User Role Column)
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+### Context
+
+SmartCommission already has a `role` column on the `User` model that includes `SUPER_ADMIN` as a valid value. The question is whether platform-level superadmin access should live in that column, or in a separate `SuperAdmin` table.
+
+Using the `role` column exclusively would conflate two distinct privilege levels: (a) tenant-level `SUPER_ADMIN` = the primary admin of their own organisation; (b) platform-level superadmin = SmartCommission operator with cross-org access. These are fundamentally different access scopes that must not be mixed.
+
+### Decision
+
+Use a dedicated `SuperAdmin` table for platform-level operators. The `role = 'SUPER_ADMIN'` on `User` continues to mean "tenant admin of their organisation." Platform superadmin is determined by `isSuperAdmin()` which checks the `SuperAdmin` table (or the hardcoded permanent email `prakashmnair@gmail.com`). See `superuser.md` for full implementation.
+
+### Consequences
+
+- Clear separation of org-level ADMIN from platform-level superadmin — no accidental privilege escalation via role column.
+- `isSuperAdmin()` must be called on every platform-admin route (`/api/superadmin/*`, `app/(superadmin)/`) — cannot rely on `user.role === 'SUPER_ADMIN'` alone.
+- The `SuperAdmin` table requires its own migration and a seed record for `prakashmnair@gmail.com`.
+- Audit logging must distinguish `ROLE_GRANTED` (org admin) from `SUPERADMIN_GRANTED` (platform superadmin) — both are separate `SecurityLog` events.
+
+---
+
+## ADR-009: Full Context Cookie for Multi-Role Role Switching
+
+**Date:** 2026-06-20
+**Status:** Accepted
+
+### Context
+
+A user can simultaneously hold: platform superadmin + admin of Org A + member of Org B. Without explicit context tracking, the system cannot determine which role should be active for a given request. Options: (a) always use the highest privilege (risk: accidental privilege leakage); (b) always use org membership and require separate superadmin login (poor UX); (c) store active context in a signed cookie.
+
+### Decision
+
+Use the full `__context` cookie pattern from `admin/docs/templates/role-switching.md`. Active context (role + organisationId) is stored in a signed JWT cookie, re-validated against the DB on every request — never trusted in isolation. `RoleSwitcher` component in every layout header allows users to switch context without logging out.
+
+### Consequences
+
+- Requires `lib/context.ts` (`getActiveContext`, `buildContextCookie`) and three new API routes before any multi-role user can log in.
+- All API routes must call `getActiveContext()` not `getUserFromRequest()` directly — to ensure role and org are in sync.
+- Proxying (superadmin impersonates a user) uses a separate amber `ProxyBanner` and a 2-hour cookie lifetime.
+- Security events logged: `CONTEXT_SWITCH` (INFO) and `PROXY_STARTED` (CRITICAL) / `PROXY_STOPPED` (INFO).

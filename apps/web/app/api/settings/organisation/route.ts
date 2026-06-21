@@ -14,7 +14,9 @@ export async function GET(req: NextRequest) {
   })
 
   if (!org) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json({ data: org })
+  return NextResponse.json({ data: org }, {
+    headers: { 'Cache-Control': 'private, s-maxage=120' },
+  })
 }
 
 export async function PATCH(req: NextRequest) {

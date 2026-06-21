@@ -26,6 +26,6 @@ jobs:
       - name: Submit Cloud Build
         run: |
           gcloud builds submit . \
-            --config=smartcommission/cloudbuild.yaml \
+            --config=cloudbuild.yaml \
             --project=smartcommission-prod \
             --substitutions="COMMIT_SHA=${{ github.sha }}"

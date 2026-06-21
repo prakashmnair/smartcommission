@@ -1,6 +1,6 @@
 # SmartCommission — Audit & Security Logging
 
-Last reviewed: 2026-06-19
+Last reviewed: 2026-06-20
 
 ---
 
@@ -23,15 +23,15 @@ SmartCommission handles sensitive financial data — commission earnings, paymen
 
 | Component | Status | Location |
 |---|---|---|
-| `AuditLog` Prisma model | Partially implemented — schema exists in `data-model.md` but deviates from canonical template | `prisma/schema.prisma` |
-| `SecurityLog` Prisma model | Partially implemented — schema exists in `data-model.md` but deviates from canonical template | `prisma/schema.prisma` |
-| `lib/audit.ts` — `logAudit()` | Open — not yet implemented | `lib/audit.ts` |
-| `lib/security-log.ts` — `logSecurity()` | Open — not yet implemented | `lib/security-log.ts` |
-| `lib/request-context.ts` | Open — not yet implemented | `lib/request-context.ts` |
-| Admin log viewer (tenant) | Open — not yet implemented | `app/(dashboard)/admin/logs/` |
-| Superadmin log viewer (all tenants) | Open — not yet implemented | `app/(superadmin)/admin/logs/` |
-
-Note: `data-model.md` documents `AuditLog` and `SecurityLog` models, but they differ slightly from the canonical template. The `AuditLog` uses `actorId`/`actorEmail` instead of `userId`/`userEmail`, and uses `actionType` instead of `action`. Standardise these column names when implementing.
+| `AuditLog` Prisma model | ✅ Implemented — canonical column names (`userId`, `userEmail`, `action`) | `apps/web/prisma/schema.prisma` |
+| `SecurityLog` Prisma model | ✅ Implemented | `apps/web/prisma/schema.prisma` |
+| `lib/audit.ts` — `logAudit()` | ✅ Implemented | `apps/web/lib/audit.ts` |
+| `lib/security-log.ts` — `logSecurity()` | ✅ Implemented (with CRITICAL→GCP Cloud Logging) | `apps/web/lib/security-log.ts` |
+| `lib/request-context.ts` | ✅ Implemented | `apps/web/lib/request-context.ts` |
+| Admin log viewer (tenant) | ✅ Implemented — filterable, paginated, CSV export | `apps/web/app/(dashboard)/logs/page.tsx` |
+| Superadmin log viewer (all tenants) | ✅ Implemented | `apps/web/app/(superadmin)/admin/logs/page.tsx` |
+| Every POST/PATCH/DELETE calls logAudit | ✅ All implemented routes call logAudit | All `app/api/` route handlers |
+| Auth events call logSecurity | ✅ Implemented for signup, login, invite, SUPERADMIN_GRANTED/REVOKED | Auth routes |
 
 ---
 

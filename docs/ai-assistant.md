@@ -45,8 +45,8 @@ Gemini response:
   └── Function call → execute tool → send result back to Gemini → final text answer
 ```
 
-**Model:** `gemini-2.5-flash`
-**SDK:** `@google/genai` v2.x (NOT the old `@google/generative-ai`)
+**Model:** `gemini-2.5-flash` (canonical per CLAUDE.md — do NOT use `gemini-2.0-flash`)
+**SDK:** `@google/genai` v2.x (NOT the old `@google/generative-ai` — cross-project check: SmartTeam used the wrong SDK at scaffold; see S-005)
 **Streaming:** Server-Sent Events (SSE)
 **Function calling:** `FunctionCallingConfigMode.AUTO` — Gemini decides which tools to invoke
 

@@ -10,8 +10,8 @@ Infrastructure configuration for SmartCommission on Google Cloud Platform.
 |---|---|
 | Project ID | `smartcommission-prod` |
 | Region | `australia-southeast1` (Sydney) |
-| Billing account | [TBC at project creation] |
-| Project number | [TBC at project creation] |
+| Billing account | `011DC4-850024-BD4F92` (My Billing Account) |
+| Project number | `1028287218164` |
 
 ---
 
@@ -19,18 +19,18 @@ Infrastructure configuration for SmartCommission on Google Cloud Platform.
 
 | Service | Purpose | Status |
 |---|---|---|
-| Cloud Run | Host the Next.js application | Planned |
-| Cloud SQL (PostgreSQL 15) | Primary database | Planned |
-| Cloud Build | CI/CD pipeline | Planned |
-| Artifact Registry | Docker image storage | Planned |
-| Cloud Storage | Import files, exports, dispute evidence | Planned |
-| Cloud Tasks | Background job queues (calc runs, import jobs) | Planned |
-| Cloud Scheduler | Nightly calculation run, FX rate refresh | Planned |
-| Secret Manager | All secrets and credentials | Planned |
-| Firebase Authentication | User identity management | Planned |
-| Cloud Logging | Application logs, audit logs | Planned |
-| Cloud Monitoring | Metrics, alerting, uptime checks | Planned |
-| Error Reporting | Automatic error aggregation | Planned |
+| Cloud Run | Host the Next.js application | ⬜ Not yet deployed |
+| Cloud SQL (PostgreSQL 15) | Primary database | 🔄 Provisioning (`smartcommission-db`) |
+| Cloud Build | CI/CD pipeline | ✅ Trigger live (`smartcommission-deploy`, fires on push to `main`) |
+| Artifact Registry | Docker image storage | ✅ Created (`smartcommission` repo) |
+| Cloud Storage | Import files, exports, dispute evidence | ✅ Created (3 buckets) |
+| Cloud Tasks | Background job queues (calc runs, import jobs) | ✅ Created (4 queues) |
+| Cloud Scheduler | Nightly calculation run, FX rate refresh | ⬜ Pending |
+| Secret Manager | All secrets and credentials | ✅ Created (9 secrets, values = REPLACE_ME) |
+| Firebase Authentication | User identity management | ⬜ Pending |
+| Cloud Logging | Application logs, audit logs | ✅ API enabled |
+| Cloud Monitoring | Metrics, alerting, uptime checks | ✅ API enabled |
+| Error Reporting | Automatic error aggregation | ✅ API enabled |
 
 ---
 
@@ -77,12 +77,12 @@ gcloud run deploy smartcommission-web \
 |---|---|
 | Instance name | `smartcommission-db` |
 | Database version | PostgreSQL 15 |
-| Tier | `db-standard-2` (2 vCPU, 7.5 GiB RAM) — scale up as needed |
+| Tier | `db-g1-small` |
 | Region | `australia-southeast1` |
-| Storage | 100 GiB SSD (autoscale enabled) |
+| Storage | 10 GiB SSD, auto-increase (recreated 2026-06-20 to replace 100 GiB pre-provisioned instance) |
 | Backups | Automated daily backups, 30-day retention |
 | PITR | Enabled (point-in-time recovery) |
-| High Availability | Enabled in production |
+| High Availability | ZONAL (HA not yet enabled — enable when prod traffic warrants it) |
 | Authorised networks | Cloud Run service account only (private IP) |
 
 ### Database names
@@ -149,16 +149,28 @@ Evidence files served via signed URLs (1-hour expiry) — never public URLs.
 
 All secrets stored in GCP Secret Manager, project `smartcommission-prod`.
 
-| Secret name | Rotation | Notes |
-|---|---|---|
-| `smartcommission-db-url` | Quarterly | PostgreSQL connection string |
-| `smartcommission-db-direct-url` | Quarterly | Direct PostgreSQL URL (for Prisma migrations) |
-| `smartcommission-firebase-admin` | Annually | Firebase Admin SDK service account JSON |
-| `smartcommission-session-secret` | Quarterly | 64-char hex secret for session cookies |
-| `smartcommission-stripe-secret` | Annually | Stripe platform secret key |
-| `smartcommission-stripe-webhook` | On change | Stripe webhook signing secret |
-| `smartcommission-oxr-key` | Annually | Open Exchange Rates API key |
-| `smartcommission-resend-key` | Annually | Resend transactional email API key |
+| Secret name | Status | Rotation | Notes |
+|---|---|---|---|
+| `smartcommission-db-url` | ✅ Real value | Quarterly | PostgreSQL Unix socket URL for Cloud Run |
+| `smartcommission-db-direct-url` | ✅ Real value | Quarterly | PostgreSQL TCP URL for Prisma migrations in Cloud Build |
+| `smartcommission-session-secret` | ✅ Real value | Quarterly | 64-char hex secret for session cookies |
+| `smartcommission-encryption-key` | ✅ Real value | Quarterly | 32-byte hex key for AES-256-GCM (SSO OIDC client secrets) |
+| `smartcommission-cleanup-secret` | ✅ Real value | Quarterly | Bearer token for internal cron/cleanup endpoints |
+| `smartcommission-oidc-private-key` | ✅ Real value | Annually | RSA-2048 private key PEM for OIDC IdP token signing |
+| `smartcommission-oidc-public-key` | ✅ Real value | Annually | RSA-2048 public key PEM for OIDC JWKS endpoint |
+| `smartcommission-firebase-project-id` | ✅ Real value | — | `smartcommission-prod` (also used as NEXT_PUBLIC_FIREBASE_PROJECT_ID) |
+| `smartcommission-firebase-api-key` | ✅ Real value | — | Firebase web API key (NEXT_PUBLIC_FIREBASE_API_KEY) |
+| `smartcommission-firebase-auth-domain` | ✅ Real value | — | `smartcommission-prod.firebaseapp.com` (NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) |
+| `smartcommission-firebase-storage-bucket` | ✅ Real value | — | `smartcommission-prod.firebasestorage.app` (NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET) |
+| `smartcommission-firebase-messaging-sender-id` | ✅ Real value | — | `1028287218164` (NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID) |
+| `smartcommission-firebase-app-id` | ✅ Real value | — | `1:1028287218164:web:39fe28ef5cfd941518f9a1` (NEXT_PUBLIC_FIREBASE_APP_ID) |
+| `smartcommission-firebase-client-email` | ✅ Real value | Annually | `firebase-adminsdk-fbsvc@smartcommission-prod.iam.gserviceaccount.com` |
+| `smartcommission-firebase-private-key` | ✅ Real value | Annually | Firebase Admin SDK RSA private key PEM |
+| `smartcommission-gemini-key` | ✅ Real value | Annually | Google Gemini API key |
+| `smartcommission-stripe-secret` | ⬜ REPLACE_ME | Annually | Stripe platform secret key |
+| `smartcommission-stripe-webhook` | ⬜ REPLACE_ME | On change | Stripe webhook signing secret |
+| `smartcommission-oxr-key` | ⬜ REPLACE_ME | Annually | Open Exchange Rates API key |
+| `smartcommission-resend-key` | ⬜ REPLACE_ME | Annually | Resend transactional email API key |
 
 ---
 
@@ -166,10 +178,11 @@ All secrets stored in GCP Secret Manager, project `smartcommission-prod`.
 
 | Setting | Value |
 |---|---|
-| Firebase project | `smartcommission-prod` |
-| Auth providers | Email/password, Google OAuth |
+| Firebase project | `smartcommission-prod` ✅ Created |
+| Web app | `SmartCommission Web` (ID: `1:1028287218164:web:39fe28ef5cfd941518f9a1`) ✅ Created |
+| Auth providers | Email/password, Google OAuth — ⚠️ must enable manually (see I-005 below) |
 | Auth domain | `smartcommission-prod.firebaseapp.com` |
-| Service account | `firebase-adminsdk@smartcommission-prod.iam.gserviceaccount.com` |
+| Admin SDK service account | `firebase-adminsdk-fbsvc@smartcommission-prod.iam.gserviceaccount.com` ✅ Key in Secret Manager |
 
 Session cookies issued by the Next.js server (7-day expiry). Firebase ID tokens refreshed client-side. No Firebase Realtime Database or Firestore used (all data in Cloud SQL).
 
@@ -179,26 +192,21 @@ Session cookies issued by the Next.js server (7-day expiry). Firebase ID tokens 
 
 ### CI/CD Pipeline
 
-Trigger: push to `main` branch.
+Trigger: push to `main` branch → `smartcommission-deploy` (trigger ID: `68198ff7-3b36-47f1-ad8f-db67352bdf56`).
 
-```yaml
-# cloudbuild.yaml (planned)
-steps:
-  - name: node:22
-    entrypoint: npm
-    args: ['install']
-    dir: apps/web
-  - name: node:22
-    entrypoint: npm
-    args: ['run', 'build']
-    dir: apps/web
-  - name: gcr.io/cloud-builders/docker
-    args: ['build', '-t', 'australia-southeast1-docker.pkg.dev/smartcommission-prod/smartcommission/web:$SHORT_SHA', '.']
-  - name: gcr.io/cloud-builders/docker
-    args: ['push', 'australia-southeast1-docker.pkg.dev/smartcommission-prod/smartcommission/web:$SHORT_SHA']
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    args: ['run', 'deploy', 'smartcommission-web', '--image', 'australia-southeast1-docker.pkg.dev/smartcommission-prod/smartcommission/web:$SHORT_SHA', '--region', 'australia-southeast1']
-```
+GitHub connection: `prakashmnair-workspace` (2nd gen, `australia-southeast1`).
+Repository linked: `prakashmnair/workspace`.
+Build config: `smartcommission/cloudbuild.yaml`.
+
+### Build steps
+1. Write `apps/web/.env.production` from Secret Manager — injects `NEXT_PUBLIC_*` Firebase vars so they are baked into the Next.js bundle at build time
+2. Docker build → tag with `$COMMIT_SHA` and `latest` → push to Artifact Registry
+3. Run `prisma migrate deploy` via Cloud SQL Auth Proxy (uses `DATABASE_DIRECT_URL` secret)
+4. `gcloud run deploy smartcommission-web` — attaches all runtime secrets + `OIDC_ISSUER` env var
+
+### First deploy pre-requisites (still outstanding)
+- Firebase project set up and all 8 `REPLACE_ME` Firebase secrets populated
+- Remaining secrets: Gemini, Stripe, OXR, Resend keys populated
 
 ---
 
@@ -206,13 +214,16 @@ steps:
 
 | Service account | Role | Purpose |
 |---|---|---|
-| Cloud Run service account | `roles/cloudsql.client` | Connect to Cloud SQL |
-| Cloud Run service account | `roles/secretmanager.secretAccessor` | Read secrets |
-| Cloud Run service account | `roles/storage.objectAdmin` | Read/write Cloud Storage buckets |
-| Cloud Run service account | `roles/cloudtasks.enqueuer` | Enqueue Cloud Tasks |
-| Cloud Run service account | `roles/logging.logWriter` | Write to Cloud Logging |
-| Cloud Build service account | `roles/run.admin` | Deploy Cloud Run services |
-| Cloud Build service account | `roles/artifactregistry.writer` | Push Docker images |
+| `smartcommission-app@smartcommission-prod.iam.gserviceaccount.com` | `roles/cloudsql.client` | Connect to Cloud SQL |
+| `smartcommission-app@smartcommission-prod.iam.gserviceaccount.com` | `roles/secretmanager.secretAccessor` | Read secrets |
+| `smartcommission-app@smartcommission-prod.iam.gserviceaccount.com` | `roles/storage.objectAdmin` | Read/write Cloud Storage buckets |
+| `smartcommission-app@smartcommission-prod.iam.gserviceaccount.com` | `roles/cloudtasks.enqueuer` | Enqueue Cloud Tasks |
+| `smartcommission-app@smartcommission-prod.iam.gserviceaccount.com` | `roles/logging.logWriter` | Write to Cloud Logging |
+| `smartcommission-app@smartcommission-prod.iam.gserviceaccount.com` | `roles/cloudscheduler.jobRunner` | Trigger Cloud Scheduler jobs |
+| `1028287218164@cloudbuild.gserviceaccount.com` | `roles/run.admin` | Deploy Cloud Run services |
+| `1028287218164@cloudbuild.gserviceaccount.com` | `roles/artifactregistry.writer` | Push Docker images |
+| `1028287218164@cloudbuild.gserviceaccount.com` | `roles/iam.serviceAccountUser` | Act as app service account |
+| `1028287218164@cloudbuild.gserviceaccount.com` | `roles/secretmanager.secretAccessor` | Read secrets for migrations |
 
 ---
 
@@ -232,15 +243,16 @@ steps:
 
 | Service | Estimated monthly cost (AUD) |
 |---|---|
-| Cloud Run (1 min instance) | ~AUD 40 |
-| Cloud SQL (db-standard-2, HA) | ~AUD 350 |
-| Cloud Storage (10 GB) | ~AUD 5 |
+| Cloud Run (1 min instance, when deployed) | ~AUD 40 |
+| Cloud SQL db-g1-small (downsized 2026-06-20) | ~AUD 38 |
+| Cloud SQL disk storage (10 GB SSD) | ~AUD 3 |
 | Cloud Tasks | ~AUD 5 |
 | Firebase Authentication | Free tier (up to 50K MAU) |
 | Secret Manager | ~AUD 2 |
 | Cloud Build (120 min/day) | ~AUD 15 |
 | Cloud Logging | ~AUD 10 |
-| **Total estimate** | **~AUD 427/month** |
+| **Total estimate (pre-launch)** | **~AUD 73/month** |
+| **Total estimate (post-launch, scale up DB to db-custom-2-7680)** | **~AUD 260/month** |
 
 Costs will increase significantly at scale. Review monthly and right-size as needed.
 
@@ -250,8 +262,9 @@ Costs will increase significantly at scale. Review monthly and right-size as nee
 
 | Code | Severity | Status | Title | Description |
 |---|---|---|---|---|
-| **I-001** | High | Open | No CI/CD pipeline yet | Cloud Build pipeline not yet configured. Deployments are manual. |
+| **I-001** | High | In Progress | No CI/CD pipeline yet | `cloudbuild.yaml` created. GitHub connection needs `secretmanager.admin` granted to `service-1028287218164@gcp-sa-cloudbuild.iam.gserviceaccount.com`, then trigger created via console/CLI. |
 | **I-002** | Medium | Open | No staging environment | Staging environment not yet provisioned. All testing done locally. |
-| **I-003** | High | Open | Cloud SQL not provisioned | Database instance not yet created. |
-| **I-004** | High | Open | Cloud Run service not deployed | Application not yet deployed to Cloud Run. |
-| **I-005** | Medium | Open | Firebase project not configured | Firebase project not yet set up for production. |
+| **I-003** | High | ✅ Fixed 2026-06-20 | Cloud SQL provisioned | Instance `smartcommission-db` created (PostgreSQL 15, `db-custom-2-7680`, `australia-southeast1`). Database `smartcommission_prod` and user `smartcommission` created. DB URLs in Secret Manager (version 2). |
+| **I-004** | High | Open | Cloud Run service not deployed | Waiting on Cloud SQL + Cloud Build trigger + real secrets before first deploy. |
+| **I-005** | Low | In Progress | Firebase Auth providers not yet enabled | Firebase project created, Admin SDK key in Secret Manager. Must visit [Firebase Console → Authentication → Get started](https://console.firebase.google.com/project/smartcommission-prod/authentication) and enable Email/Password + Google Sign-In. Cannot be done via CLI (requires ToS acceptance in browser). |
+| **I-006** | Medium | In Progress | Some secrets still need real values | Outstanding: Gemini key, Stripe secret, Stripe webhook secret, OXR key, Resend key. All Firebase secrets are now real values. |

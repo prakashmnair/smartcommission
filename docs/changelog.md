@@ -5,6 +5,76 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-22 (Session 5 — Expert Review)
+
+### Fixed
+- `apps/web/app/api/release-notes/tenant/route.ts` — added `take: 200` cap to unbounded `findMany` (P-005)
+- `apps/web/app/api/query-console/queries/route.ts` — added `take: 200` cap to unbounded `findMany` (P-006)
+- `apps/web/app/api/reports/route.ts` — added `take: 200` cap to unbounded `findMany` (P-007)
+
+### Changed
+- `docs/features.md` — added new issues P-005 through P-007, U-006, U-007, A-002, I-008 through I-010; added roadmap items R-100 through R-104; confirmed all prior fixes still in place
+- `docs/changelog.md` — this entry
+- `docs/security.md` — updated SR-019 noting GCP still unprovisioned; no new security risks found this session
+
+### Notes
+- GCP project `smartcommission-prod` is provisioned (gcloud returns empty array rather than auth error) but Cloud Run service not yet deployed. Firebase Auth providers still pending manual activation (I-009). 4 secrets still REPLACE_ME (I-010).
+- Docs coverage audit: all canonical template docs exist in `smartcommission/docs/`. No missing doc files found this session.
+- Cross-project check: no new issues propagated from other projects this session.
+- Stack versions confirmed current: Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma v7.8.0, Firebase v12/Admin v14, lucide-react 1.20.0 (latest: 1.21.0 — minor version, no issue).
+
+---
+
+## 2026-06-20 (Session 4 — Expert Review)
+
+### Fixed
+- `apps/web/app/(superadmin)/layout.tsx` — replaced `← Back to Dashboard` text link with ChevronLeft icon + "Dashboard" label (U-003, canonical back-nav pattern)
+- `apps/web/app/(superadmin)/layout.tsx`, `(dashboard)/layout.tsx`, `(portal)/layout.tsx`, `(auth)/layout.tsx`, `app/layout.tsx`, `app/onboarding/page.tsx`, `app/offline/page.tsx` — replaced all `min-h-screen` with `min-h-dvh` to fix iOS Safari viewport collapse bug (U-004)
+- `apps/web/app/api/settings/users/route.ts` — added `take: 200` cap to unbounded `findMany` (P-002)
+- `apps/web/app/api/settings/api-keys/route.ts` — added `take: 100` cap to unbounded `findMany` (P-003)
+- `apps/web/app/api/release-notes/route.ts` — added `Cache-Control: private, s-maxage=60` header (P-004)
+- `apps/web/app/api/settings/organisation/route.ts` — added `Cache-Control: private, s-maxage=120` header (P-004)
+
+### Changed
+- `docs/features.md` — marked B-001, S-001–S-004, U-001–U-002, D-002, I-006 as ✅ Fixed; added new issues U-003 through U-005, P-002–P-004, S-007–S-008; added roadmap items R-095–R-098; marked R-076–R-081, R-088–R-089 as ✅ DONE.
+- `docs/superuser.md` — updated implementation status table to reflect fully-implemented superuser pattern; last reviewed 2026-06-20.
+- `docs/audit-logging.md` — updated implementation status table to reflect fully-implemented audit/security logging; last reviewed 2026-06-20.
+- `docs/security.md` — added SR-018 for SHA-256 API key hashing weakness.
+- `docs/changelog.md` — this entry.
+
+---
+
+## 2026-06-20 (Session 4 — Expert Review)
+
+### Added
+- `docs/review/smartcommission_review_20260620140000.md` — timestamped expert review for this session (Session 4).
+
+### Changed
+- `docs/features.md` — added 7 new issues (I-007, D-003, D-004, S-005, S-006, U-003) and 4 new roadmap items (R-092 through R-094); all pre-existing issues confirmed still Open; no code exists to fix yet.
+- `docs/changelog.md` — this entry.
+
+### Notes
+- GCP project `smartcommission-prod` not yet created (I-007 confirmed via `gcloud logging read` attempt).
+- Cross-project check: screendex (2026-06-18), smartassociation (2026-06-18), smartreceipt (2026-06-20), smartteam (2026-06-17), sproutbase (2026-06-20) changelogs reviewed. SmartCommission-specific patterns confirmed:
+  - SmartTeam used wrong AI SDK (`@google/generative-ai`) — S-005 logged.
+  - Sproutbase session 2026-06-20 fixed ThemeProvider absence (U-16) and ThemeToggle missing — SmartCommission must ensure same pattern when code is created.
+  - SmartReceipt 2026-06-20 fixed unbounded `findMany` and missing `Cache-Control` — SmartCommission must enforce `take` limits and cache headers from day one.
+
+---
+
+## 2026-06-20 (Session 3 — Expert Review)
+
+### Added
+- `docs/ux-patterns.md` — UX patterns and performance standards doc was missing (U-002); created with full SmartCommission-specific content: back navigation map, header layout pattern, ProfileMenu dropdown order, spinner colour rules, loading/error/empty state templates, performance conventions (parallelise queries, cap findMany, Cache-Control headers, lazy-load heavy components), and admin nav layout.
+- `docs/review/smartcommission_review_20260620120000.md` — timestamped expert review for this session.
+
+### Changed
+- `docs/features.md` — added 3 new issues (U-002 missing ux-patterns.md, I-006 stack version audit, tracking); added 7 new roadmap items (R-086 role-switching API, R-087 RoleSwitcher/ProxyBanner, R-088 Toast/ConfirmDialog, R-089 canonical stack versions, R-090 clawback jurisdiction warning, R-091 PWA/Capacitor). Legal compliance updated: last reviewed date updated to 2026-06-20.
+- `docs/changelog.md` — this entry.
+- `docs/legal-compliance.md` — updated last reviewed date to 2026-06-20; next review 2026-09-20.
+
+---
+
 ## 2026-06-18 (Session 2 — Expert Review)
 
 ### Added

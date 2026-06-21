@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/auth/session'
 import { isSuperAdmin } from '@/lib/auth/superadmin'
 import Link from 'next/link'
-import { Building2, Users, ScrollText, Shield, Newspaper } from 'lucide-react'
+import { Building2, Users, ScrollText, Shield, Newspaper, ChevronLeft } from 'lucide-react'
 
 const navItems = [
   { href: '/admin/orgs', icon: Building2, label: 'Organisations' },
@@ -19,7 +19,7 @@ export default async function SuperadminLayout({ children }: { children: React.R
   if (!isAdmin) redirect('/dashboard')
 
   return (
-    <div className="flex min-h-screen bg-violet-950">
+    <div className="flex min-h-dvh bg-violet-950">
       <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-violet-900/60 border-r border-violet-800">
         <div className="flex items-center gap-2 px-5 py-4 border-b border-violet-800">
           <div className="w-7 h-7 bg-violet-600 rounded-lg flex items-center justify-center">
@@ -40,8 +40,13 @@ export default async function SuperadminLayout({ children }: { children: React.R
           ))}
         </nav>
         <div className="px-3 py-4 border-t border-violet-800">
-          <Link href="/dashboard" className="text-xs text-violet-400 hover:text-violet-100 transition-colors">
-            ← Back to Dashboard
+          <Link
+            href="/dashboard"
+            aria-label="Back to Dashboard"
+            className="flex items-center gap-1.5 p-1.5 -ml-1.5 rounded-lg text-violet-400 hover:text-white hover:bg-violet-700/50 transition-colors"
+          >
+            <ChevronLeft size={18} />
+            <span className="text-xs font-medium">Dashboard</span>
           </Link>
         </div>
       </aside>

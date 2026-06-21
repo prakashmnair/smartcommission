@@ -43,6 +43,9 @@ All environment variables required to run SmartCommission. Server-only variables
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | No | `G-XXXXXXXXXX` | Google Analytics 4 Measurement ID | Public |
 | `NEXT_PUBLIC_INTERCOM_APP_ID` | No | `abc123` | Intercom App ID for in-app live chat | Public |
 | `NODE_ENV` | Yes | `production` | Node environment (`development`, `test`, `production`) | Server |
+| `GEMINI_API_KEY` | Yes (Phase 4) | `AIza...` | Google Gemini API key for AI assistant | Server |
+| `CONTEXT_COOKIE_SECRET` | Yes | `64-char random hex` | Signing secret for the `__context` role-switching cookie | Server |
+| `ENCRYPTION_KEY` | Yes | `32-byte base64` | AES-256-GCM key for SSO OIDC client secret encryption (role-switching.md, sso.md) | Server |
 
 ---
 

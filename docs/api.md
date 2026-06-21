@@ -234,6 +234,31 @@ All routes (except `/api/auth/*`) require a valid session cookie or Bearer API k
 | `POST` | `/api/admin/users/:id/revoke-superadmin` | Session | Revoke SUPER_ADMIN role (self-revoke blocked) | SUPER_ADMIN |
 | `GET` | `/api/admin/audit-logs` | Session | View audit logs across all orgs | SUPER_ADMIN |
 | `GET` | `/api/admin/security-logs` | Session | View security logs across all orgs | SUPER_ADMIN |
+| `GET` | `/api/admin/release-notes` | Session | List all release notes (platform + tenant) | SUPER_ADMIN |
+| `POST` | `/api/admin/release-notes` | Session | Create platform release note | SUPER_ADMIN |
+| `PATCH` | `/api/admin/release-notes/:id` | Session | Update platform release note | SUPER_ADMIN |
+| `POST` | `/api/admin/release-notes/:id/publish` | Session | Publish a release note | SUPER_ADMIN |
+| `POST` | `/api/admin/release-notes/:id/hide` | Session | Hide a release note globally | SUPER_ADMIN |
+
+---
+
+## Context & Role-Switching Routes
+
+| Method | Path | Auth | Description | Roles |
+|---|---|---|---|---|
+| `GET` | `/api/context/available` | Session | Return all roles the current user holds across all orgs | All |
+| `POST` | `/api/context/switch` | Session | Switch active context (role + organisationId) — validates against DB | All |
+| `POST` | `/api/superadmin/proxy` | Session | Start proxying as a target user | SUPER_ADMIN |
+| `POST` | `/api/superadmin/proxy/stop` | Session | Stop proxying; return to superadmin context | SUPER_ADMIN (proxying) |
+
+---
+
+## AI Assistant Routes
+
+| Method | Path | Auth | Description | Roles |
+|---|---|---|---|---|
+| `POST` | `/api/ai/chat` | Session | SSE streaming chat endpoint (Gemini function calling) | All authenticated |
+| `GET` | `/api/ai/sessions` | Session | List last 20 AI chat sessions for the current user | All authenticated |
 
 ---
 

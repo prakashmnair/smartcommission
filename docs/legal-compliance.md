@@ -1,7 +1,7 @@
 # SmartCommission — Legal & Regulatory Compliance
 
-Last reviewed: 2026-06-18 (Session 2 — Expert Review)
-Next review due: 2026-09-18 (quarterly)
+Last reviewed: 2026-06-20 (Session 4 — Expert Review)
+Next review due: 2026-09-20 (quarterly)
 
 ---
 

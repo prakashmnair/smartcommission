@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: { remotePatterns: [] },
   headers: async () => [{
     source: '/sw.js',

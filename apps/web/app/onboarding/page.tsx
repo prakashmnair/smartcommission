@@ -10,7 +10,7 @@ export default async function OnboardingPage() {
   const firstName = session.name?.split(' ')[0] ?? 'there'
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4">
+    <div className="min-h-dvh bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="max-w-lg w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-6">
         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
           <CheckCircle className="text-green-600 dark:text-green-400" size={32} />

@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
       visibility: { in: ['ORG_MEMBERS', 'SHARED_LINK'] },
     },
     orderBy: { publishedAt: 'desc' },
+    take: 200,
     select: {
       id: true,
       reportName: true,

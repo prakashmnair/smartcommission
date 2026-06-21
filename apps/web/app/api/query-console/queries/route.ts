@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   const queries = await db.savedQuery.findMany({
     where: { organisationId: org.organisationId },
     orderBy: { updatedAt: 'desc' },
+    take: 200,
     select: {
       id: true,
       name: true,

@@ -16,7 +16,7 @@ export default async function PortalLayout({ children }: { children: React.React
   if (!session) redirect('/login')
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-dvh bg-slate-50 dark:bg-slate-950">
       {/* Light sidebar for rep portal */}
       <aside className="hidden md:flex flex-col w-56 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-200 dark:border-slate-800">

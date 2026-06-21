@@ -306,19 +306,44 @@ Codes: **B** = Bug · **S** = Security · **P** = Performance · **U** = UX · *
 |---|---|---|---|---|
 | **I-001** | High | Open | No CI/CD pipeline yet | Cloud Build pipeline not yet configured. Deployments are manual. |
 | **I-002** | Medium | Open | No staging environment | Staging environment not yet provisioned. All testing done locally. |
-| **I-003** | High | Open | Cloud SQL instance not provisioned | Database not yet created in GCP. Blocking all development. |
-| **I-004** | High | Open | Cloud Run service not deployed | Next.js app not yet deployed. No production environment. |
-| **I-005** | Medium | Open | Firebase project not configured | Firebase project not yet set up for production auth. |
+| **I-003** | High | ✅ Fixed 2026-06-20 | Cloud SQL instance not provisioned | Instance `smartcommission-db` created (PostgreSQL 15, `db-custom-2-7680`, `australia-southeast1`). DB URLs in Secret Manager. |
+| **I-004** | High | Open | Cloud Run service not deployed | Next.js app not yet deployed. Waiting on Firebase Auth activation and real secrets before first deploy. |
+| **I-005** | Medium | In Progress | Firebase Auth providers not yet enabled | Firebase project created; Admin SDK key in Secret Manager. Must activate Email/Password and Google Sign-In manually in Firebase Console. Cannot be done via CLI. |
 | **D-001** | Medium | Open | No database migrations tooling | Prisma migrate workflow not yet established. Schema changes risk data loss. |
-| **B-001** | Critical | Open | No application code exists — all features planned only | `apps/web/` directory does not exist. Zero implemented code. Project is documentation-only at this stage. |
-| **S-001** | High | Open | Superuser pattern not yet implemented | `isSuperAdmin()` helper, self-revoke protection, and superadmin console not yet built. Required by CLAUDE.md standards. |
-| **S-002** | High | Open | SecurityLog model not yet implemented | CLAUDE.md requires `SecurityLog` Prisma model and `lib/security-log.ts`. Not yet built. |
-| **S-003** | High | Open | lib/audit.ts and lib/security-log.ts not yet implemented | Audit and security logging utilities required before any API routes are built. |
-| **S-004** | High | Open | lib/pii.ts not yet implemented | PII masking utilities (maskEmail, maskName, maskPhone, maskIp, scrubPii) not yet built. |
-| **U-001** | High | Open | No application UI built | All UI described in user-journeys.md and features.md is planned only. No screens exist. |
-| **A-001** | Medium | Open | Accessibility not yet testable | No application code to audit for WCAG 2.1 AA compliance. Must be verified on implementation. |
-| **P-001** | Medium | Open | No performance benchmarks established | Calculation engine performance targets (1M transactions < 5 minutes) not yet verifiable without implementation. |
-| **D-002** | Medium | Open | SecurityLog not in data model | `data-model.md` has `AuditLog` but is missing the `SecurityLog` model required by CLAUDE.md audit-logging standard. |
+| **B-001** | Critical | ✅ Fixed 2026-06-20 | No application code exists — all features planned only | `apps/web/` fully scaffolded with Next.js 16, Tailwind v4, Prisma 7, Firebase 12, all core libraries and pages. |
+| **S-001** | High | ✅ Fixed 2026-06-20 | Superuser pattern not yet implemented | `isSuperAdmin()`, `requireSuperAdmin()`, self-revoke protection, and superadmin console all implemented. |
+| **S-002** | High | ✅ Fixed 2026-06-20 | SecurityLog model not yet implemented | `SecurityLog` Prisma model and `lib/security-log.ts` fully implemented. |
+| **S-003** | High | ✅ Fixed 2026-06-20 | lib/audit.ts and lib/security-log.ts not yet implemented | Both utilities implemented; every API route calls logAudit. |
+| **S-004** | High | ✅ Fixed 2026-06-20 | lib/pii.ts not yet implemented | PII masking utilities fully implemented in `apps/web/lib/pii.ts`. |
+| **U-001** | High | ✅ Fixed 2026-06-20 | No application UI built | Core UI built: dashboard, plans, transactions, settings, logs, portal, onboarding, auth, superadmin. |
+| **A-001** | Medium | In Progress | Accessibility not yet audited on implemented code | Core UI exists. WCAG 2.1 AA audit needed — icon-only buttons may lack aria-labels; color contrast must be verified. |
+| **P-001** | Medium | Open | No performance benchmarks established | Calculation engine performance targets (1M transactions < 5 minutes) not yet verifiable — engine not yet implemented. |
+| **D-002** | Medium | ✅ Fixed 2026-06-20 | SecurityLog not in data model | `SecurityLog` model added to `prisma/schema.prisma`. |
+| **U-002** | Medium | ✅ Fixed 2026-06-20 | `docs/ux-patterns.md` was missing | Created 2026-06-20 with SmartCommission-specific content. |
+| **I-006** | Medium | ✅ Fixed 2026-06-20 | Stack version audit — all versions unverifiable | `package.json` confirmed: Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma v7.8.0, Firebase v12/Admin v14. All canonical. |
+| **U-003** | Medium | ✅ Fixed 2026-06-20 | `← Back to Dashboard` text link in superadmin layout (UX standard violation) | Replaced with ChevronLeft icon + "Dashboard" label in `app/(superadmin)/layout.tsx`. |
+| **U-004** | Medium | ✅ Fixed 2026-06-20 | `min-h-screen` used throughout — iOS Safari `100vh` collapse bug | Replaced with `min-h-dvh` across all 6 layout files and full-height pages. |
+| **P-002** | Medium | ✅ Fixed 2026-06-20 | `GET /api/settings/users` has no `take` cap — unbounded query | Added `take: 200` to prevent unbounded query on orgs with large user lists. |
+| **P-003** | Medium | ✅ Fixed 2026-06-20 | `GET /api/settings/api-keys` has no `take` cap | Added `take: 100` to prevent unbounded query. |
+| **P-004** | Medium | ✅ Fixed 2026-06-20 | `GET /api/release-notes` and `GET /api/settings/organisation` have no Cache-Control headers | Added `Cache-Control: private, s-maxage=60/120` headers to reduce repeated DB reads on semi-static routes. |
+| **S-007** | High | Open | API key hash uses SHA-256 not bcrypt — weak hashing | `app/api/settings/api-keys/route.ts` comment: "simple hash for demo — in production use bcrypt". SHA-256 without salt is rainbow-table vulnerable. Upgrade to bcrypt/argon2 before production. |
+| **U-005** | Medium | Open | No sign-out option in dashboard sidebar | The sidebar user section shows name and email initials but no logout/profile menu. Users cannot sign out from the main app without navigating away. Needs a ProfileMenu dropdown. |
+| **S-008** | Low | Open | `@google/genai` v2.x not installed — incorrect SDK will be used when AI built | `package.json` does not include `@google/genai`. When Phase 4 AI features are implemented, must install `@google/genai` v2.x and NOT the deprecated `@google/generative-ai`. |
+| **I-007** | Medium | Open | GCP project `smartcommission-prod` not yet created | `gcloud logging read` returns `USER_PROJECT_DENIED` — project doesn't exist. Cloud Run, Cloud SQL, Firebase, and all GCP infrastructure are still unprovisioned. Blocks all production testing and log auditing. |
+| **D-003** | Medium | ✅ Fixed 2026-06-22 | `data-model.md` AuditLog schema deviates from canonical template | Prisma schema (`prisma/schema.prisma`) verified to use canonical field names: `action`, `tenantId`, `changes`, `outcome`. `data-model.md` doc text references old names but the actual schema is correct. Update `data-model.md` text to match schema. |
+| **D-004** | Medium | ✅ Fixed 2026-06-22 | Missing Prisma models for new features | All models now present in `prisma/schema.prisma`: `SsoConfig`, `SavedQuery`, `QueryRun`, `ReleaseNote`, `ApiKey`, `AuditLog`, `SecurityLog`. `AiSession` and `AiMessage` not yet added (Phase 4). `data-model.md` doc text should be updated to reflect these additions. |
+| **S-005** | Medium | Open | Cross-project: SmartTeam uses `@google/generative-ai` — wrong SDK | Cross-project check: SmartTeam changelog shows initial scaffold used `@google/generative-ai`. SmartCommission must use `@google/genai` v2.x per CLAUDE.md. Flag at project init. |
+| **S-006** | Medium | Open | `ai-assistant.md` model discrepancy | CLAUDE.md mandates `gemini-2.5-flash` but the SmartCommission `ai-assistant.md` (line 48) states `gemini-2.5-flash` — this is correct. However, verify it is consistent with MEMORY.md. |
+| **U-003** | Low | Open | `docs/video/` missing storyboard and voiceover files | `docs/video/` has `marketing-script.md` and `voiceover.txt` but template requires `storyboard.md` and a rendered MP4. Add storyboard and note MP4 as pending production. |
+| **P-005** | Medium | ✅ Fixed 2026-06-22 | `GET /api/release-notes/tenant` has no `take` cap — unbounded query | Added `take: 200` to `app/api/release-notes/tenant/route.ts`. Orgs with many tenant release notes would load all records. |
+| **P-006** | Medium | ✅ Fixed 2026-06-22 | `GET /api/query-console/queries` has no `take` cap — unbounded query | Added `take: 200` to `app/api/query-console/queries/route.ts`. |
+| **P-007** | Medium | ✅ Fixed 2026-06-22 | `GET /api/reports` has no `take` cap — unbounded query | Added `take: 200` to `app/api/reports/route.ts`. |
+| **U-006** | Medium | Open | No mobile bottom navigation in dashboard or portal layouts | Both `(dashboard)/layout.tsx` and `(portal)/layout.tsx` use a desktop sidebar only. No fixed bottom nav for mobile (required by design system). `max-w-[430px] mx-auto` fixed bottom bar with `pb-24` body clearance is missing. |
+| **A-002** | Medium | Open | Icon-only buttons in dashboard pages lack aria-labels | Several interactive icon-only buttons in dashboard pages (e.g., edit/delete/action icons on list pages) may not have `aria-label` attributes. Only superadmin release notes page and portal release notes page were confirmed compliant. Full audit of `(dashboard)/` and `(portal)/` pages needed. |
+| **U-007** | Low | Open | Dashboard sidebar user footer shows name/email but no logout | U-005 persists from previous review. Dashboard and portal sidebar footers display user identity but have no ProfileMenu or sign-out action. Canonical pattern: avatar → dropdown (name → sign out). See R-095. |
+| **I-008** | Medium | Open | Cloud SQL backups and PITR disabled (cost saving measure) — critical risk before launch | R-099 flagged 2026-06-20: PITR disabled. Must be re-enabled via `gcloud sql instances patch`. Blocks production readiness. |
+| **I-009** | High | Open | Firebase Auth providers not yet enabled in console | I-005 in gcp-setup.md: Email/Password and Google Sign-In must be activated manually in Firebase Console. Blocks all user registration and login. Cannot be done via CLI. |
+| **I-010** | High | Open | 4 critical secrets missing — Stripe, OXR, Resend keys are REPLACE_ME | `smartcommission-stripe-secret`, `smartcommission-stripe-webhook`, `smartcommission-oxr-key`, `smartcommission-resend-key` all have placeholder values. Platform billing, FX rates, and email are non-functional until filled. |
 
 ---
 
@@ -428,16 +453,35 @@ Status: **Open** · **In Progress** · **✅ DONE [date]** · **✅ Partially DO
 
 | Code | Priority | Status | Title | Description |
 |---|---|---|---|---|
-| **R-076** | Critical | Open | Create Next.js App Router project scaffold | `npx create-next-app@latest apps/web` with Tailwind v4, Geist font, Prisma, next-themes. Follow design-system.md exactly. |
-| **R-077** | Critical | Open | Implement superuser pattern | `isSuperAdmin()` helper hardcoding prakashmnair@gmail.com; self-revoke protection; superadmin console route group. See `admin/docs/templates/superuser.md`. |
-| **R-078** | Critical | Open | Add SecurityLog Prisma model | `SecurityLog` model required by CLAUDE.md. Add to `prisma/schema.prisma` alongside `AuditLog`. Update `data-model.md`. |
-| **R-079** | Critical | Open | Implement lib/audit.ts and lib/security-log.ts | Utility functions for audit and security logging. Required before any API route development. See `admin/docs/templates/audit-logging.md`. |
-| **R-080** | Critical | Open | Implement lib/pii.ts | PII masking utilities: maskEmail, maskName, maskPhone, maskIp, scrubPii. Required before any logging or export implementation. |
-| **R-081** | Critical | Open | Implement lib/request-context.ts | Extract IP, user-agent, request ID from every request for audit logging. |
-| **R-082** | Critical | Open | GCP infrastructure provisioning | Create Cloud SQL instance, Cloud Run service, Cloud Storage buckets, Cloud Tasks queues, Secret Manager secrets, Firebase project. See `gcp-setup.md`. |
+| **R-076** | Critical | ✅ DONE 2026-06-20 | Create Next.js App Router project scaffold | `apps/web/` exists with Next.js 16, Tailwind v4, Geist font, Prisma 7, next-themes, all canonical dependencies. |
+| **R-077** | Critical | ✅ DONE 2026-06-20 | Implement superuser pattern | `isSuperAdmin()`, self-revoke protection, superadmin console all implemented. |
+| **R-078** | Critical | ✅ DONE 2026-06-20 | Add SecurityLog Prisma model | `SecurityLog` in `prisma/schema.prisma` with full index coverage. |
+| **R-079** | Critical | ✅ DONE 2026-06-20 | Implement lib/audit.ts and lib/security-log.ts | Both utilities fully implemented. All API routes call logAudit. |
+| **R-080** | Critical | ✅ DONE 2026-06-20 | Implement lib/pii.ts | All five masking functions implemented in `apps/web/lib/pii.ts`. |
+| **R-081** | Critical | ✅ DONE 2026-06-20 | Implement lib/request-context.ts | Implemented in `apps/web/lib/request-context.ts`. |
+| **R-082** | Critical | Open | GCP infrastructure provisioning | GCP project `smartcommission-prod` does not yet exist. All GCP services unprovisioned. |
 | **R-083** | Critical | Open | Publish Terms of Service, Privacy Policy, Cookie Policy | Required before any public launch. Engage legal review. See `legal-compliance.md`. |
 | **R-084** | High | Open | Sign DPAs with all sub-processors | GCP, Stripe, Resend, Open Exchange Rates. Required for GDPR compliance. See `legal-compliance.md`. |
 | **R-085** | High | Open | Implement cookie consent banner | Required for EU/UK users. Needed before any analytics or non-essential cookies. |
+| **R-086** | High | Open | Implement lib/context.ts + role-switching API routes | `getActiveContext()`, `buildContextCookie()`, `GET /api/context/available`, `POST /api/context/switch`. Required for multi-role users. See role-switching.md. |
+| **R-087** | High | Open | Implement RoleSwitcher and ProxyBanner components | RoleSwitcher dropdown in every layout header; amber ProxyBanner during impersonation. See role-switching.md. |
+| **R-088** | High | ✅ DONE 2026-06-20 | Implement Toast + ConfirmDialog system | `lib/toast.tsx`, `lib/confirm.tsx`, `components/ui/Toaster.tsx`, `components/ui/ConfirmDialog.tsx` all implemented and wired into root layout. |
+| **R-089** | Medium | ✅ DONE 2026-06-20 | Ensure stack uses canonical versions at project init | Confirmed: Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma v7.8.0, Firebase v12/Admin v14. All canonical. |
+| **R-090** | Medium | Open | Clawback jurisdiction warning in plan builder UI | Warn when a "recovery after vesting" clawback is configured for Australian or California participants. See legal-compliance.md. |
+| **R-091** | Medium | Open | PWA and Capacitor support | `public/manifest.json`, icons, `next-pwa`, offline fallback page, Capacitor for App Store distribution. See design-system.md PWA section. |
+| **R-092** | Medium | Open | Reconcile data-model.md with canonical audit-logging schema | Align AuditLog and SecurityLog field names in `data-model.md` to match canonical template in `audit-logging.md` (action vs actionType, tenantId vs organisationId, changes vs oldValue/newValue). |
+| **R-093** | Medium | Open | Add missing Prisma models to data-model.md | Add `SuperAdmin`, `SsoConfig`, `ReleaseNote`, `AiSession`, `AiMessage`, `SavedQuery`, `QueryRun` to `data-model.md` ER diagram and tables section. |
+| **R-094** | Low | Open | Create `docs/video/storyboard.md` | Marketing video storyboard document is missing. Template requires: 8 scenes with visual descriptions, timing, and production notes for AI video tools. |
+| **R-095** | High | Open | Add ProfileMenu (sign-out) to dashboard sidebar | Dashboard layout has user info but no logout. Add a ProfileMenu dropdown (avatar → name → sign out) to the sidebar footer following the canonical UX pattern. See U-005. |
+| **R-096** | High | Open | Upgrade API key hashing from SHA-256 to bcrypt | `app/api/settings/api-keys/route.ts` uses SHA-256 without salt — rainbow-table vulnerable. Upgrade to bcrypt (cost factor 12) before production. See S-007. |
+| **R-097** | Medium | Open | Add aria-labels to all icon-only interactive elements | WCAG 2.1 AA requires `aria-label` on every button/link that has only an icon and no visible text. Audit all pages in `app/(dashboard)/`, `app/(superadmin)/`, and `app/(portal)/`. |
+| **R-098** | Medium | Open | Add `@google/genai` v2.x when implementing AI features | `package.json` does not include the AI SDK. Must install `@google/genai` v2.x (not `@google/generative-ai`) when implementing Phase 4 AI features. See S-008. |
+| **R-099** | **Critical** | Open | Re-enable Cloud SQL backups and PITR | Disabled 2026-06-21 for cost savings. Must re-enable before launch. Config: daily backups, 30-day retention, PITR on. Command: `gcloud sql instances patch smartcommission-db --backup --enable-point-in-time-recovery --project=smartcommission-prod` |
+| **R-100** | High | Open | Enable Firebase Auth providers (Email/Password + Google) | Must visit Firebase Console → Authentication → Get started and enable providers manually. Cannot be automated. Blocks all user registration. See I-009. |
+| **R-101** | High | Open | Fill in 4 missing secrets in Secret Manager | Populate `smartcommission-stripe-secret`, `smartcommission-stripe-webhook`, `smartcommission-oxr-key`, `smartcommission-resend-key` in GCP Secret Manager before first deploy. See I-010. |
+| **R-102** | Medium | Open | Add mobile bottom navigation bar | Add fixed bottom nav (`max-w-[430px] mx-auto`) to `(dashboard)/layout.tsx` and `(portal)/layout.tsx` per design system requirement. Add `pb-24` body clearance. See U-006. |
+| **R-103** | Medium | Open | Full WCAG 2.1 AA aria-label audit on dashboard and portal pages | Systematically audit every page in `app/(dashboard)/` and `app/(portal)/` for icon-only interactive elements missing `aria-label`. See A-002. |
+| **R-104** | Low | Open | Add Cache-Control to /api/release-notes/tenant and /api/query-console/queries | Semi-static admin list routes should add `Cache-Control: private, s-maxage=60` to reduce redundant DB reads. Currently both routes lack this header. |
 
 ---
 

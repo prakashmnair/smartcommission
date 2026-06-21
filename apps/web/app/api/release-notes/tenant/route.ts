@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const notes = await db.releaseNote.findMany({
     where: { type: 'TENANT', tenantId: ctx.organisationId },
     orderBy: { createdAt: 'desc' },
+    take: 200,
   })
 
   return NextResponse.json({ data: notes })

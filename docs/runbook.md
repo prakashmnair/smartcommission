@@ -244,6 +244,16 @@ gcloud sql instances restore-backup smartcommission-db \
 
 ---
 
+## Known Infrastructure Blockers (as at 2026-06-20)
+
+| Blocker | Impact | Resolution |
+|---|---|---|
+| GCP project `smartcommission-prod` does not exist | Cannot deploy to Cloud Run, Cloud SQL, or Firebase. All GCP logging returns `USER_PROJECT_DENIED`. | Create the GCP project per `gcp-setup.md`. Run `gcloud projects create smartcommission-prod` then provision all services in order: Secret Manager → Cloud SQL → Cloud Run. |
+| Cloud SQL instance not provisioned | No database; application cannot run in production | After GCP project creation, follow Cloud SQL setup steps in `gcp-setup.md`. Run `prisma migrate deploy` once Cloud SQL is reachable. |
+| Firebase project not configured for production | Firebase Auth not wired; no production sign-in | Create Firebase project `smartcommission-prod`. Enable Email/Password + Google OAuth. Download service account JSON and store in Secret Manager. |
+
+---
+
 ## Access Levels
 
 | Role | Access |

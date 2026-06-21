@@ -1021,3 +1021,42 @@ Maps to: `draw_balances` / Prisma model `DrawBalance`
 - `Payment` → `EarningsRecord`: many-to-one — a payment settles a specific earnings record
 - `Dispute` → `EarningsRecord`: many-to-one — a dispute targets a specific earnings record
 - `Dispute` → `Transaction`: many-to-one (optional) — a dispute may target a specific transaction within an earnings period
+
+---
+
+## Additional Models (Planned — not yet in Prisma schema)
+
+The following models are documented in their respective feature docs and must be added to `prisma/schema.prisma` when implementation begins (see R-092, R-093):
+
+### SuperAdmin
+Platform-level superadmins (distinct from tenant `ADMIN` role). See `superuser.md`.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | `String` (cuid PK) | Primary key |
+| `firebaseUid` | `String` (UNIQUE) | Firebase Auth UID |
+| `email` | `String` (UNIQUE) | Superadmin email |
+| `name` | `String` | Display name |
+| `grantedBy` | `String?` | firebaseUid of granting superadmin |
+| `grantedAt` | `DateTime` | Grant timestamp |
+| `active` | `Boolean` | Whether access is active |
+| `createdAt` | `DateTime` | Creation timestamp |
+| `updatedAt` | `DateTime` | Last updated |
+
+### SsoConfig
+Per-organisation SSO configuration. See `sso.md`. Planned Phase 3 (R-048).
+
+### ReleaseNote
+Platform and tenant release notes. See `release-notes.md`. Two streams: PLATFORM and TENANT. Fields: id, version, title, summary, body, type, category, isVisible, isPublished, publishedAt, tenantId, authorId, createdAt, updatedAt.
+
+### AiSession / AiMessage
+AI assistant conversation history. See `ai-assistant.md`. Planned Phase 4 (R-066).
+
+### SavedQuery / QueryRun
+Query console and published reports. See `query-console.md`. Planned Phase 3.
+
+---
+
+## Schema Alignment Notes
+
+The `AuditLog` model as described in this document uses field names from the initial draft (`actorId`, `actorEmail`, `actionType`, `oldValue`, `newValue`). The canonical template in `audit-logging.md` uses updated names (`userId`, `userEmail`, `action`, `changes`, `outcome`, `tenantId`). When implementing `prisma/schema.prisma`, **use the `audit-logging.md` canonical schema**, not the draft in this document. Update this document accordingly at that time (see D-003, R-092).

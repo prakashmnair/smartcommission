@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     where: { organisationId: ctx.organisationId, revokedAt: null },
     select: { id: true, name: true, keyPrefix: true, scopes: true, lastUsedAt: true, expiresAt: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
+    take: 100,
   })
 
   return NextResponse.json({ data: keys })

@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
       managerId: true,
     },
     orderBy: { name: 'asc' },
+    take: 200,
   })
 
   // Mask PII for non-admin roles

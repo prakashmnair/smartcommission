@@ -1,14 +1,14 @@
 # SmartCommission — Superuser Pattern
 
-Last reviewed: 2026-06-19
+Last reviewed: 2026-06-20
 
 ---
 
 ## Overview
 
-SmartCommission uses a dedicated `SuperAdmin` table (Option B from the canonical template) because the platform already has six roles (`SUPER_ADMIN`, `ADMIN`, `FINANCE`, `MANAGER`, `REP`, `READ_ONLY`) and a multi-tenant `Organisation` model. The `SUPER_ADMIN` role in the `User` table represents **tenant-level** admins; platform-level superadmins are stored separately in a dedicated table.
+SmartCommission implements platform superadmin using an `isSuperAdmin` boolean column on the `User` model (simpler than a separate `SuperAdmin` table given the project's single-app architecture). The `SUPER_ADMIN` role value in `User.role` is **not used** — superadmin status is tracked via `User.isSuperAdmin`.
 
-`prakashmnair@gmail.com` is always a platform superadmin — enforced in code, not just data.
+`prakashmnair@gmail.com` is always a platform superadmin — enforced in code via a hardcoded email check that bypasses the DB entirely.
 
 ---
 
@@ -16,17 +16,20 @@ SmartCommission uses a dedicated `SuperAdmin` table (Option B from the canonical
 
 | Component | Status | Location |
 |---|---|---|
-| `SuperAdmin` Prisma model | Open — not yet implemented | `prisma/schema.prisma` |
-| `isSuperAdmin()` helper | Open — not yet implemented | `lib/auth/superadmin.ts` |
-| `requireSuperAdmin()` middleware | Open — not yet implemented | `lib/auth/superadmin.ts` |
-| Superadmin layout guard | Open — not yet implemented | `app/(superadmin)/layout.tsx` |
-| `POST /api/superadmin/grant` | Open — not yet implemented | `app/api/superadmin/grant/route.ts` |
-| `POST /api/superadmin/revoke` | Open — not yet implemented | `app/api/superadmin/revoke/route.ts` |
-| `GET /api/superadmin/users` | Open — not yet implemented | `app/api/superadmin/users/route.ts` |
-| `/admin/orgs` superadmin console | Open — not yet implemented | `app/(superadmin)/admin/orgs/page.tsx` |
-| `/admin/users` superadmin console | Open — not yet implemented | `app/(superadmin)/admin/users/page.tsx` |
-
-Note: No application code exists yet — the project is in a documentation-only phase (see `features.md` B-001).
+| `User.isSuperAdmin` boolean field | ✅ Implemented | `prisma/schema.prisma` line 49 |
+| `isSuperAdmin()` helper | ✅ Implemented | `apps/web/lib/auth/superadmin.ts` |
+| `requireSuperAdmin()` middleware | ✅ Implemented | `apps/web/lib/auth/superadmin.ts` |
+| Superadmin layout guard | ✅ Implemented | `apps/web/app/(superadmin)/layout.tsx` |
+| `PATCH /api/superadmin/users` (grant/revoke) | ✅ Implemented | `apps/web/app/api/superadmin/users/route.ts` |
+| `GET /api/superadmin/users` | ✅ Implemented | `apps/web/app/api/superadmin/users/route.ts` |
+| `GET /api/superadmin/orgs` | ✅ Implemented | `apps/web/app/api/superadmin/orgs/route.ts` |
+| `/admin/orgs` superadmin console | ✅ Implemented | `apps/web/app/(superadmin)/admin/orgs/page.tsx` |
+| `/admin/users` superadmin console | ✅ Implemented | `apps/web/app/(superadmin)/admin/users/page.tsx` |
+| `/admin/logs` superadmin audit view | ✅ Implemented | `apps/web/app/(superadmin)/admin/logs/page.tsx` |
+| `/admin/release-notes` | ✅ Implemented | `apps/web/app/(superadmin)/admin/release-notes/page.tsx` |
+| Self-revoke protection | ✅ Implemented | `PATCH /api/superadmin/users` line 52 |
+| Permanent-account protection | ✅ Implemented | `PATCH /api/superadmin/users` line 47 |
+| Audit + security logging on grant/revoke | ✅ Implemented | `PATCH /api/superadmin/users` |
 
 ---
 
@@ -190,4 +193,4 @@ if (user.email === 'prakashmnair@gmail.com') {
 
 | Code | Priority | Status | Title |
 |---|---|---|---|
-| **R-077** | Critical | Open | Implement superuser pattern |
+| **R-077** | Critical | ✅ DONE 2026-06-20 | Implement superuser pattern |

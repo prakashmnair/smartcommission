@@ -19,5 +19,7 @@ export async function GET(req: NextRequest) {
     take: 100,
   })
 
-  return NextResponse.json({ data: notes })
+  return NextResponse.json({ data: notes }, {
+    headers: { 'Cache-Control': 'private, s-maxage=60' },
+  })
 }
