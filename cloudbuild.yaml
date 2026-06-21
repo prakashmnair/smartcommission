@@ -103,5 +103,7 @@ substitutions:
   _REGION: 'australia-southeast1'
   _INSTANCE_CONNECTION_NAME: 'smartcommission-prod:australia-southeast1:smartcommission-db'
 
+serviceAccount: 'projects/smartcommission-prod/serviceAccounts/1028287218164@cloudbuild.gserviceaccount.com'
+
 options:
   logging: CLOUD_LOGGING_ONLY
