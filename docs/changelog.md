@@ -5,6 +5,24 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-23 (Session 7 — Expert Review)
+
+### Changed
+- `docs/features.md` — added new issues B-002, S-021, P-008, I-011; added roadmap items R-105 through R-107; all prior fixes confirmed still in place
+- `docs/security.md` — updated SR-019 (GCP project confirmed active, Cloud SQL logs verified), added note on CSV formula injection risk (SR-006 still open)
+- `docs/changelog.md` — this entry
+
+### Notes
+- GCP Cloud SQL logs confirmed: instance `smartcommission-db` is actively running (graceful admin restart seen 2026-06-22 UTC — normal Cloud SQL maintenance pattern; no application errors).
+- `gcloud beta error-reporting events list` command syntax not supported in this gcloud version (`list` is not a valid subcommand of `events`). Error Reporting must be checked via GCP Console.
+- Cloud Run service still not deployed — no Cloud Run logs to review. All app code remains pre-production.
+- Cross-project audit: Screendex fixed violet→indigo spinner colour correction (2026-06-23). SmartCommission dashboard app pages correctly use `border-indigo-500` — no propagation needed. Sproutbase fixed ThemeProvider absence (U-16) — SmartCommission confirms ThemeProvider is wired in `app/providers.tsx` with correct `attribute="class" defaultTheme="system" enableSystem` — no fix needed. SmartReceipt fixed session cookie forgery (I-06/SR-006) — SmartCommission uses Firebase Auth + server-side session cookies verified via `firebase-admin`, not plain base64 — confirmed secure.
+- Stack versions re-confirmed current: Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma v7.8.0, Firebase 12/Admin 14, lucide-react 1.20.0. All canonical.
+- `docs/video/` directory has `marketing-script.md` and `voiceover.txt` but is missing `storyboard.md` (R-094 remains open).
+- All canonical template docs exist in `smartcommission/docs/`. Template `marketing-video.md` corresponds to `docs/video/marketing-script.md` — confirmed present. No missing doc files.
+
+---
+
 ## 2026-06-22 (Session 6 — Docs Completeness Audit)
 
 ### Changed

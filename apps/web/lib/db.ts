@@ -10,7 +10,8 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefi
 export const db: PrismaClient = new Proxy({} as PrismaClient, {
   get(_target, prop) {
     if (!globalForPrisma.prisma) {
-      const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+      // max:1 prevents P2028 "Transaction not found" on Cloud Run — proxy handles pooling upstream
+      const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL!, max: 1 })
       globalForPrisma.prisma = new PrismaClient({ adapter })
     }
     return (globalForPrisma.prisma as unknown as Record<string, unknown>)[prop as string]
