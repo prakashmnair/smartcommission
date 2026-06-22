@@ -1,6 +1,6 @@
 # SmartCommission — Query Console & Published Reports
 
-Last reviewed: 2026-06-19
+Last reviewed: 2026-06-22
 
 ---
 
@@ -20,17 +20,15 @@ Three capabilities:
 
 | Component | Status | Location |
 |---|---|---|
-| `SavedQuery` Prisma model | Open — not yet implemented | `prisma/schema.prisma` |
-| `QueryRun` Prisma model | Open — not yet implemented | `prisma/schema.prisma` |
-| `lib/query-safe.ts` — `validateSql()` + `executeQuery()` | Open — not yet implemented | `lib/query-safe.ts` |
-| `POST /api/query-console/run` | Open — not yet implemented | API route |
-| `GET/POST /api/query-console/queries` | Open — not yet implemented | API routes |
-| `POST /api/query-console/queries/[id]/publish` | Open — not yet implemented | API route |
-| `GET /api/reports` | Open — not yet implemented | API route |
-| Query console UI (Monaco editor) | Open — not yet implemented | `app/(dashboard)/query-console/page.tsx` |
-| Reports gallery UI | Open — not yet implemented | `app/(dashboard)/reports/page.tsx` |
-
-Note: No application code exists yet. Query console is expected in Phase 3 alongside the full public API.
+| `SavedQuery` Prisma model | ✅ Implemented 2026-06-20 | `apps/web/prisma/schema.prisma` |
+| `QueryRun` Prisma model | ✅ Implemented 2026-06-20 | `apps/web/prisma/schema.prisma` |
+| `lib/query-safe.ts` — `validateSql()` + `executeQuery()` | ✅ Implemented 2026-06-20 | `apps/web/lib/query-safe.ts` |
+| `POST /api/query-console/run` | ✅ Implemented 2026-06-20 | `apps/web/app/api/query-console/run/route.ts` |
+| `GET/POST /api/query-console/queries` | ✅ Implemented 2026-06-20 | `apps/web/app/api/query-console/queries/route.ts` |
+| `GET /api/query-console/runs` | ✅ Implemented 2026-06-20 | `apps/web/app/api/query-console/runs/route.ts` |
+| `GET /api/reports` | ✅ Implemented 2026-06-20 | `apps/web/app/api/reports/route.ts` |
+| Query console UI (Monaco editor) | ✅ Implemented 2026-06-20 | `apps/web/app/(dashboard)/query-console/page.tsx` |
+| Reports gallery UI | ✅ Implemented 2026-06-20 | `apps/web/app/(dashboard)/reports/page.tsx` |
 
 ---
 

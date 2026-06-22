@@ -205,28 +205,29 @@ erDiagram
   }
   AuditLog {
     string id PK
-    string organisationId FK
-    string actorId FK
-    string actionType
+    string userId FK
+    string userEmail
+    string tenantId FK
+    string action
     string entityType
     string entityId
-    json oldValue
-    json newValue
+    json changes
+    string outcome
     string ipAddress
     string sessionId
+    string requestId
     DateTime createdAt
   }
   SecurityLog {
     string id PK
-    string organisationId FK
+    string tenantId FK
     string userId FK
     string userEmail
     string event
     string severity
     string ipAddress
-    string requestId
-    json metadata
-    boolean gcpLogged
+    string userAgent
+    json details
     DateTime createdAt
   }
   Integration {
@@ -743,20 +744,23 @@ Maps to: `disputes` / Prisma model `Dispute`
 
 Maps to: `audit_logs` / Prisma model `AuditLog`
 
+Field names match the canonical `audit-logging.md` schema and the actual `prisma/schema.prisma`. (D-003 fixed 2026-06-22)
+
 | Column | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | `String` | PK, cuid | Primary key |
-| `organisationId` | `String` | NOT NULL | Tenant scope (denormalised for query efficiency) |
-| `actorId` | `String` | NULLABLE | User who performed the action (null for system actions) |
-| `actorEmail` | `String` | NULLABLE | Denormalised email (preserved if user deleted) |
-| `actionType` | `String` | NOT NULL | CREATE / UPDATE / DELETE / LOGIN / LOGOUT / EXPORT / IMPORT / CALCULATE / APPROVE / DISPUTE |
-| `entityType` | `String` | NOT NULL | CompensationPlan / Quota / Transaction / EarningsRecord / Payment / Dispute / User / etc. |
-| `entityId` | `String` | NOT NULL | ID of the affected entity |
-| `oldValue` | `Json` | NULLABLE | JSON snapshot of the entity before the change |
-| `newValue` | `Json` | NULLABLE | JSON snapshot of the entity after the change |
+| `userId` | `String` | NULLABLE | User who performed the action (null for system actions) |
+| `userEmail` | `String` | NULLABLE | Denormalised email (preserved if user deleted) |
+| `sessionId` | `String` | NULLABLE | Session identifier |
 | `ipAddress` | `String` | NULLABLE | Client IP address |
 | `userAgent` | `String` | NULLABLE | Browser/client user agent |
-| `sessionId` | `String` | NULLABLE | Session identifier |
+| `tenantId` | `String` | NULLABLE | Org scope — null for platform-level actions |
+| `action` | `String` | NOT NULL | Format `ENTITY.VERB` e.g. `PLAN.PUBLISH`, `PAYMENT.APPROVE`, `TRANSACTION.IMPORT` |
+| `entityType` | `String` | NOT NULL | CompensationPlan / Quota / Transaction / EarningsRecord / Payment / Dispute / User / etc. |
+| `entityId` | `String` | NULLABLE | ID of the affected entity |
+| `changes` | `Json` | NULLABLE | `{ "field": { "old": X, "new": Y } }` diff — sensitive values omitted |
+| `metadata` | `Json` | NULLABLE | Extra context (e.g. plan version, period, calculation run ID) |
+| `outcome` | `String` | default 'SUCCESS' | `SUCCESS` / `FAILURE` |
 | `requestId` | `String` | NULLABLE | HTTP request correlation ID |
 | `createdAt` | `DateTime` | default now, NOT NULL | Immutable — never updated |
 
@@ -771,16 +775,14 @@ Required by the CLAUDE.md audit-logging standard. Tracks authentication, authori
 | Column | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | `String` | PK, cuid | Primary key |
-| `organisationId` | `String` | NULLABLE | Tenant scope (null for platform-level events) |
 | `userId` | `String` | NULLABLE | User involved (null for pre-auth events) |
 | `userEmail` | `String` | NULLABLE | Denormalised email (preserved if user deleted) |
-| `event` | `String` | NOT NULL | `LOGIN_SUCCESS` / `LOGIN_FAILURE` / `LOGOUT` / `SUPERADMIN_GRANTED` / `SUPERADMIN_REVOKED` / `PASSWORD_RESET` / `EMAIL_CHANGED` / `MFA_ENABLED` / `MFA_DISABLED` / `API_KEY_CREATED` / `API_KEY_REVOKED` / `DATA_EXPORTED` / `UNAUTHORIZED_ACCESS` / `IMPERSONATION_STARTED` / `IMPERSONATION_ENDED` |
-| `severity` | `String` | NOT NULL, default 'INFO' | `INFO` / `WARNING` / `CRITICAL` |
 | `ipAddress` | `String` | NULLABLE | Client IP address |
 | `userAgent` | `String` | NULLABLE | Browser/client user agent |
-| `requestId` | `String` | NULLABLE | HTTP request correlation ID |
-| `metadata` | `Json` | NULLABLE | Additional event context (e.g. targetUserId for impersonation, reason for superadmin grant) |
-| `gcpLogged` | `Boolean` | default false | Whether this event was also written to GCP Cloud Logging (for CRITICAL events) |
+| `tenantId` | `String` | NULLABLE | Tenant scope (null for platform-level events) |
+| `event` | `String` | NOT NULL | `LOGIN_SUCCESS` / `LOGIN_FAILURE` / `LOGOUT` / `SUPERADMIN_GRANTED` / `SUPERADMIN_REVOKED` / `PASSWORD_RESET` / `EMAIL_CHANGED` / `API_KEY_CREATED` / `API_KEY_REVOKED` / `DATA_EXPORTED` / `UNAUTHORIZED_ACCESS` / `PROXY_STARTED` / `PROXY_STOPPED` / `SSO_LOGIN_SUCCESS` / `SSO_LOGIN_FAILURE` / `CONTEXT_SWITCH` |
+| `severity` | `String` | NOT NULL, default 'INFO' | `INFO` / `WARNING` / `CRITICAL` |
+| `details` | `Json` | NULLABLE | Additional event context (e.g. targetUserId for proxy, reason for superadmin grant) |
 | `createdAt` | `DateTime` | default now, NOT NULL | Immutable — never updated |
 
 **Notes:**
@@ -1024,39 +1026,30 @@ Maps to: `draw_balances` / Prisma model `DrawBalance`
 
 ---
 
-## Additional Models (Planned — not yet in Prisma schema)
+## Additional Models
 
-The following models are documented in their respective feature docs and must be added to `prisma/schema.prisma` when implementation begins (see R-092, R-093):
+The following models are in `apps/web/prisma/schema.prisma`. (R-092, R-093 resolved 2026-06-22)
 
 ### SuperAdmin
-Platform-level superadmins (distinct from tenant `ADMIN` role). See `superuser.md`.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | `String` (cuid PK) | Primary key |
-| `firebaseUid` | `String` (UNIQUE) | Firebase Auth UID |
-| `email` | `String` (UNIQUE) | Superadmin email |
-| `name` | `String` | Display name |
-| `grantedBy` | `String?` | firebaseUid of granting superadmin |
-| `grantedAt` | `DateTime` | Grant timestamp |
-| `active` | `Boolean` | Whether access is active |
-| `createdAt` | `DateTime` | Creation timestamp |
-| `updatedAt` | `DateTime` | Last updated |
+**Not used.** SmartCommission uses `User.isSuperAdmin` boolean on the `User` model — no separate SuperAdmin table. See `superuser.md`.
 
 ### SsoConfig
-Per-organisation SSO configuration. See `sso.md`. Planned Phase 3 (R-048).
+Per-organisation SSO configuration. ✅ Implemented 2026-06-20 — model in `apps/web/prisma/schema.prisma`. See `sso.md`. Fields: id, organisationId, protocol (SAML|OIDC), SAML/OIDC IdP fields, SP identity fields, emailDomain, forceSso, isEnabled, isVerified, isIdpEnabled, idpClients, createdById, updatedById, createdAt, updatedAt.
+
+### ApiKey
+Per-organisation API keys. ✅ Implemented 2026-06-20 — model in `apps/web/prisma/schema.prisma`. Fields: id, organisationId, name, keyPrefix (unique lookup), keyHash (stored hashed), scopes, lastUsedAt, expiresAt, revokedAt, createdById, createdAt.
 
 ### ReleaseNote
-Platform and tenant release notes. See `release-notes.md`. Two streams: PLATFORM and TENANT. Fields: id, version, title, summary, body, type, category, isVisible, isPublished, publishedAt, tenantId, authorId, createdAt, updatedAt.
+Platform and tenant release notes. See `release-notes.md`. ✅ Implemented 2026-06-20 — model in `apps/web/prisma/schema.prisma`. Two streams: PLATFORM and TENANT. Fields: id, version, title, summary, body, type, category, isVisible, isPublished, publishedAt, tenantId, createdById, updatedById, createdAt, updatedAt.
 
 ### AiSession / AiMessage
 AI assistant conversation history. See `ai-assistant.md`. Planned Phase 4 (R-066).
 
 ### SavedQuery / QueryRun
-Query console and published reports. See `query-console.md`. Planned Phase 3.
+Query console and published reports. See `query-console.md`. ✅ Implemented 2026-06-20 — models in `apps/web/prisma/schema.prisma`. Fields: id, organisationId, name, description, sql, parameters, tags, isPublished, visibility, shareToken, createdById, and all associated `QueryRun` execution records.
 
 ---
 
 ## Schema Alignment Notes
 
-The `AuditLog` model as described in this document uses field names from the initial draft (`actorId`, `actorEmail`, `actionType`, `oldValue`, `newValue`). The canonical template in `audit-logging.md` uses updated names (`userId`, `userEmail`, `action`, `changes`, `outcome`, `tenantId`). When implementing `prisma/schema.prisma`, **use the `audit-logging.md` canonical schema**, not the draft in this document. Update this document accordingly at that time (see D-003, R-092).
+**D-003 fixed 2026-06-22:** `AuditLog` and `SecurityLog` field names updated in this document to match the canonical `audit-logging.md` schema and the actual `apps/web/prisma/schema.prisma`. Old draft names (`actorId`, `actorEmail`, `actionType`, `oldValue`, `newValue`, `organisationId`, `gcpLogged`) replaced with canonical names (`userId`, `userEmail`, `action`, `changes`, `outcome`, `tenantId`, `details`).

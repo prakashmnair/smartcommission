@@ -5,6 +5,20 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-22 (Session 6 — Docs Completeness Audit)
+
+### Changed
+- `docs/toast-confirm.md` — Updated implementation status to ✅ Implemented (all components exist in codebase). Updated checklist. Updated roadmap R-088 to DONE.
+- `docs/pii-masking.md` — Updated masking gaps: B-001 fixed (lib/pii.ts exists), B-003 in progress.
+- `docs/superuser.md` — Fixed Data Model section: no separate SuperAdmin table; project uses User.isSuperAdmin boolean. Updated Auth Helper to match actual `apps/web/lib/auth/superadmin.ts`. Fixed security checklist to checked state. Removed stale seed example using `db.superAdmin`.
+- `docs/sso.md` — Updated implementation status: all SSO routes and lib/sso.ts confirmed implemented. Updated Last reviewed to 2026-06-22.
+- `docs/query-console.md` — Updated implementation status: all query console components confirmed implemented. Updated Last reviewed.
+- `docs/release-notes.md` — Updated implementation status: all release notes components confirmed implemented. Updated Last reviewed.
+- `docs/data-model.md` — Fixed AuditLog and SecurityLog field names to match canonical schema (D-003). Updated ER diagram. Updated Additional Models section: removed phantom SuperAdmin table, added SsoConfig, ApiKey, marked SavedQuery/QueryRun/ReleaseNote as implemented.
+- `docs/features.md` — Marked D-003, D-004, R-092, R-093 as ✅ DONE 2026-06-22.
+
+---
+
 ## 2026-06-22 (Session 5 — Expert Review)
 
 ### Fixed

@@ -1,6 +1,6 @@
 # SmartCommission — Toast & Confirm Dialog
 
-Last reviewed: 2026-06-19
+Last reviewed: 2026-06-22
 
 ---
 
@@ -20,11 +20,11 @@ This matters particularly in SmartCommission because several actions are high-st
 
 | Component | Status | Location |
 |---|---|---|
-| `lib/toast.tsx` — ToastProvider + useToast | Open — not yet implemented | `lib/toast.tsx` |
-| `lib/confirm.tsx` — ConfirmProvider + useConfirm | Open — not yet implemented | `lib/confirm.tsx` |
-| `components/ui/Toaster.tsx` | Open — not yet implemented | `components/ui/Toaster.tsx` |
-| `components/ui/ConfirmDialog.tsx` | Open — not yet implemented | `components/ui/ConfirmDialog.tsx` |
-| Wired into root layout | Open — not yet implemented | `app/layout.tsx` |
+| `lib/toast.tsx` — ToastProvider + useToast | ✅ Implemented 2026-06-20 | `apps/web/lib/toast.tsx` |
+| `lib/confirm.tsx` — ConfirmProvider + useConfirm | ✅ Implemented 2026-06-20 | `apps/web/lib/confirm.tsx` |
+| `components/ui/Toaster.tsx` | ✅ Implemented 2026-06-20 | `apps/web/components/ui/Toaster.tsx` |
+| `components/ui/ConfirmDialog.tsx` | ✅ Implemented 2026-06-20 | `apps/web/components/ui/ConfirmDialog.tsx` |
+| Wired into root layout | ✅ Implemented 2026-06-20 | `apps/web/app/layout.tsx` |
 
 ---
 
@@ -263,22 +263,23 @@ async function terminateUser(userId: string) {
 
 ---
 
-## Open Roadmap Items
+## Roadmap Items
 
 | Code | Priority | Status | Title |
 |---|---|---|---|
-| R-089 | High | Open | Implement toast & confirm system (prerequisite before any UI work) |
+| R-088 | High | ✅ DONE 2026-06-20 | Implement toast & confirm system |
+| — | Low | Open | Add ESLint rule to forbid `window.alert` / `window.confirm` across codebase |
 
 ---
 
 ## Checklist
 
-- [ ] `lib/toast.tsx` — ToastProvider + useToast + useToastItems
-- [ ] `lib/confirm.tsx` — ConfirmProvider + useConfirm + useConfirmState
-- [ ] `components/ui/Toaster.tsx` — fixed bottom-right toast stack
-- [ ] `components/ui/ConfirmDialog.tsx` — modal overlay, danger and default variants
-- [ ] Both providers + both render components wired into `app/layout.tsx`
-- [ ] All `window.alert` replaced with `toast.*`
-- [ ] All `window.confirm` replaced with `await confirm({ ... })`
+- [x] `lib/toast.tsx` — ToastProvider + useToast + useToastItems — `apps/web/lib/toast.tsx`
+- [x] `lib/confirm.tsx` — ConfirmProvider + useConfirm + useConfirmState — `apps/web/lib/confirm.tsx`
+- [x] `components/ui/Toaster.tsx` — fixed bottom-right toast stack — `apps/web/components/ui/Toaster.tsx`
+- [x] `components/ui/ConfirmDialog.tsx` — modal overlay, danger and default variants — `apps/web/components/ui/ConfirmDialog.tsx`
+- [x] Both providers + both render components wired into `apps/web/app/layout.tsx`
+- [ ] All `window.alert` replaced with `toast.*` (full audit needed as UI pages are built)
+- [ ] All `window.confirm` replaced with `await confirm({ ... })` (full audit needed as UI pages are built)
 - [ ] High-stakes actions (payment approval, transaction void, plan delete) use `ConfirmDialog`
 - [ ] ESLint rule to forbid `window.alert` / `window.confirm` (optional)

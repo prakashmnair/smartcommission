@@ -1,6 +1,6 @@
 # SmartCommission — SSO (SP & IdP)
 
-Last reviewed: 2026-06-19
+Last reviewed: 2026-06-22
 
 ---
 
@@ -22,19 +22,17 @@ SSO is particularly important for SmartCommission because:
 
 | Component | Status | Location |
 |---|---|---|
-| `SsoConfig` Prisma model | Open — not yet implemented | `prisma/schema.prisma` |
-| `lib/sso.ts` SAML helper | Open — not yet implemented | `lib/sso.ts` |
-| `GET /api/auth/sso/[orgSlug]/metadata` | Open — not yet implemented | SP metadata endpoint |
-| `GET /api/auth/sso/[orgSlug]/authorize` | Open — not yet implemented | SAML SP-initiated flow |
-| `POST /api/auth/sso/[orgSlug]/acs` | Open — not yet implemented | SAML ACS |
-| `GET /api/auth/sso/[orgSlug]/oidc/authorize` | Open — not yet implemented | OIDC SP flow |
-| `GET /api/auth/sso/[orgSlug]/oidc/callback` | Open — not yet implemented | OIDC callback |
-| `GET /api/auth/sso/lookup` | Open — not yet implemented | Email domain detection |
-| `app/(auth)/auth/sso-complete/page.tsx` | Open — not yet implemented | Client-side token exchange |
-| Admin SSO settings UI | Open — not yet implemented | `app/(dashboard)/settings/sso/page.tsx` |
-| IdP mode endpoints | Open — not yet implemented | `GET /.well-known/openid-configuration` etc. |
-
-Note: SSO is planned for Phase 3 (see `features.md` R-048). No application code exists yet.
+| `SsoConfig` Prisma model | ✅ Implemented 2026-06-20 | `apps/web/prisma/schema.prisma` |
+| `lib/sso.ts` SAML helper | ✅ Implemented 2026-06-20 | `apps/web/lib/sso.ts` |
+| `GET /api/auth/sso/[orgSlug]/metadata` | ✅ Implemented 2026-06-20 | `apps/web/app/api/auth/sso/[orgSlug]/metadata/route.ts` |
+| `GET /api/auth/sso/[orgSlug]/authorize` | ✅ Implemented 2026-06-20 | `apps/web/app/api/auth/sso/[orgSlug]/authorize/route.ts` |
+| `POST /api/auth/sso/[orgSlug]/acs` | ✅ Implemented 2026-06-20 | `apps/web/app/api/auth/sso/[orgSlug]/acs/route.ts` |
+| `GET /api/auth/sso/[orgSlug]/oidc/authorize` | ✅ Implemented 2026-06-20 | `apps/web/app/api/auth/sso/[orgSlug]/oidc/authorize/route.ts` |
+| `GET /api/auth/sso/[orgSlug]/oidc/callback` | ✅ Implemented 2026-06-20 | `apps/web/app/api/auth/sso/[orgSlug]/oidc/callback/route.ts` |
+| `GET /api/auth/sso/lookup` | ✅ Implemented 2026-06-20 | `apps/web/app/api/auth/sso/lookup/route.ts` |
+| Admin SSO settings UI | ✅ Implemented 2026-06-20 | `apps/web/app/(dashboard)/settings/sso/page.tsx` |
+| IdP mode endpoints (`/api/idp/*`) | ✅ Implemented 2026-06-20 | `apps/web/app/api/idp/` |
+| Client-side SSO complete page | Open — to be built | `app/(auth)/auth/sso-complete/page.tsx` |
 
 ---
 

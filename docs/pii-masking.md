@@ -151,6 +151,6 @@ On account deletion:
 
 | Code | Gap | Status |
 |---|---|---|
-| **B-001** | `lib/pii.ts` not yet implemented — no code exists yet | Open |
-| **B-002** | Admin views not yet built — PII reveal toggle not yet implemented | Open |
-| **B-003** | Log scrubbing not yet applied — no application code to scrub | Open |
+| **B-001** | `lib/pii.ts` not yet implemented — no code exists yet | ✅ Fixed 2026-06-20 — `apps/web/lib/pii.ts` implemented with all five functions |
+| **B-002** | Admin views not yet built — PII reveal toggle not yet implemented | Open — awaiting Phase 1 UI build |
+| **B-003** | Log scrubbing not yet applied — no application code to scrub | In Progress — `scrubPii()` implemented; applied in audit.ts and security-log.ts; UI pages needed before full coverage |

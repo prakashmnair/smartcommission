@@ -35,54 +35,55 @@ SmartCommission implements platform superadmin using an `isSuperAdmin` boolean c
 
 ## Data Model
 
-### SuperAdmin table (platform-level only)
+SmartCommission uses the `isSuperAdmin` boolean field on the `User` model — **no separate SuperAdmin table**. This is the simpler pattern suited to this project's single-app architecture.
 
 ```prisma
-model SuperAdmin {
-  id          String   @id @default(cuid())
-  firebaseUid String   @unique
-  email       String   @unique
-  name        String
-  grantedBy   String?  // firebaseUid of granting superadmin (null for seed record)
-  grantedAt   DateTime @default(now())
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("super_admins")
+model User {
+  // ...
+  isSuperAdmin   Boolean   @default(false)
+  // ...
 }
 ```
 
-Note: The `User` model already has a `role` field with `SUPER_ADMIN` as a value — this is used for **tenant-level** organisational admins (i.e. a user who is the primary admin of their `Organisation`). The `SuperAdmin` table is for platform-level operators with cross-org access. Do not conflate the two.
+Note: The `User.role` field with value `SUPER_ADMIN` is **not used** for platform superadmin — that value is vestigial. Superadmin status is tracked exclusively via `User.isSuperAdmin`. The `ADMIN` role in `User.role` is for org-level admins within their own `Organisation`. Do not conflate these.
 
 ---
 
 ## Auth Helper
 
 ```ts
-// lib/auth/superadmin.ts
+// apps/web/lib/auth/superadmin.ts
 import 'server-only'
 import { db } from '@/lib/db'
+import { NextRequest, NextResponse } from 'next/server'
+import { getSessionUser } from '@/lib/auth/session'
+import { logSecurity } from '@/lib/security-log'
+import { getRequestContext } from '@/lib/request-context'
 
 const PERMANENT_SUPERADMIN_EMAIL = 'prakashmnair@gmail.com'
 
 export async function isSuperAdmin(uid: string, email?: string): Promise<boolean> {
   // Hardcoded permanent superadmin — always true regardless of DB state
   if (email === PERMANENT_SUPERADMIN_EMAIL) return true
-  // DB check for other platform superadmins
-  const record = await db.superAdmin.findUnique({
-    where: { firebaseUid: uid, active: true },
-    select: { id: true },
-  })
-  return !!record
+  // DB check for other platform superadmins via User.isSuperAdmin
+  const user = await db.user.findUnique({ where: { firebaseUid: uid }, select: { isSuperAdmin: true } })
+  return !!user?.isSuperAdmin
 }
 
-export async function requireSuperAdmin(req: NextRequest) {
-  const user = await getUserFromRequest(req)
-  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-  const ok = await isSuperAdmin(user.uid, user.email)
-  if (!ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  return user
+export async function requireSuperAdmin(req: NextRequest): Promise<{ uid: string; email: string } | NextResponse> {
+  const session = await getSessionUser(req)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const isAdmin = await isSuperAdmin(session.uid, session.email)
+  if (!isAdmin) {
+    await logSecurity('UNAUTHORIZED_ACCESS', {
+      userId: session.uid, userEmail: session.email,
+      severity: 'CRITICAL',
+      details: { path: req.nextUrl.pathname },
+      ...getRequestContext(req),
+    })
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  return { uid: session.uid, email: session.email }
 }
 ```
 
@@ -160,32 +161,23 @@ export default async function SuperAdminLayout({ children }: { children: React.R
 
 ## Seed / Bootstrap
 
-The permanent superadmin (`prakashmnair@gmail.com`) does NOT need a DB row — `isSuperAdmin()` always returns true for that email. Optionally insert a record on first login:
+The permanent superadmin (`prakashmnair@gmail.com`) does NOT need a DB row — `isSuperAdmin()` always returns true for that email because of the hardcoded check. No seeding required.
 
-```ts
-// In POST /api/auth/sync or sign-in handler:
-if (user.email === 'prakashmnair@gmail.com') {
-  await db.superAdmin.upsert({
-    where: { firebaseUid: user.uid },
-    create: { firebaseUid: user.uid, email: user.email, name: 'Prakash Nair', grantedBy: null, active: true },
-    update: { active: true },
-  })
-}
-```
+For other platform superadmins, grant access via `PATCH /api/superadmin/users` with `{ "isSuperAdmin": true }`. This sets `User.isSuperAdmin = true` in the database.
 
 ---
 
 ## Security Checklist
 
-- [ ] `SuperAdmin` model added to `prisma/schema.prisma`
-- [ ] `isSuperAdmin()` helper implemented in `lib/auth/superadmin.ts`
-- [ ] All `/api/superadmin/*` routes call `requireSuperAdmin()` before any logic
-- [ ] Self-revoke guard in `POST /api/superadmin/revoke`
-- [ ] Permanent email guard: cannot revoke `prakashmnair@gmail.com`
-- [ ] Audit log written for every grant/revoke action
-- [ ] Superadmin UI route group has a server-side layout guard at `app/(superadmin)/layout.tsx`
-- [ ] No superadmin capability accessible to regular users even if URL is guessed
-- [ ] `SUPER_ADMIN` role in `User.role` is tenant-level only — do not confuse with platform superadmin
+- [x] `User.isSuperAdmin` boolean added to `prisma/schema.prisma`
+- [x] `isSuperAdmin()` helper implemented in `apps/web/lib/auth/superadmin.ts`
+- [x] All `/api/superadmin/*` routes call `requireSuperAdmin()` before any logic
+- [x] Self-revoke guard in `PATCH /api/superadmin/users`
+- [x] Permanent email guard: cannot revoke `prakashmnair@gmail.com`
+- [x] Audit log written for every grant/revoke action
+- [x] Superadmin UI route group has a server-side layout guard at `app/(superadmin)/layout.tsx`
+- [x] No superadmin capability accessible to regular users even if URL is guessed
+- [x] `SUPER_ADMIN` value in `User.role` is NOT used for platform superadmin — status tracked via `User.isSuperAdmin` only
 
 ---
 

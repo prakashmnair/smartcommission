@@ -1,6 +1,6 @@
 # SmartCommission — Release Notes
 
-Last reviewed: 2026-06-19
+Last reviewed: 2026-06-22
 
 ---
 
@@ -17,14 +17,14 @@ SmartCommission provides a release notes page accessible to all authenticated us
 
 | Component | Status | Location |
 |---|---|---|
-| `ReleaseNote` Prisma model | Open — not yet implemented | `prisma/schema.prisma` |
-| `GET /api/release-notes` | Open — not yet implemented | Public endpoint for all authenticated users |
-| Tenant admin CRUD routes | Open — not yet implemented | `app/api/release-notes/tenant/` |
-| Superadmin CRUD routes | Open — not yet implemented | `app/api/superadmin/release-notes/` |
-| User-facing release notes page | Open — not yet implemented | `app/(dashboard)/release-notes/page.tsx` |
-| Tenant admin management page | Open — not yet implemented | `app/(dashboard)/settings/release-notes/page.tsx` |
-| Superadmin management page | Open — not yet implemented | `app/(superadmin)/admin/release-notes/page.tsx` |
-| "What's New" nav link + badge | Open — not yet implemented | Dashboard sidebar |
+| `ReleaseNote` Prisma model | ✅ Implemented 2026-06-20 | `apps/web/prisma/schema.prisma` |
+| `GET /api/release-notes` | ✅ Implemented 2026-06-20 | `apps/web/app/api/release-notes/route.ts` |
+| Tenant admin CRUD routes | ✅ Implemented 2026-06-20 | `apps/web/app/api/release-notes/tenant/route.ts` |
+| Superadmin CRUD routes | ✅ Implemented 2026-06-20 | `apps/web/app/api/superadmin/release-notes/route.ts` and `[id]/route.ts` |
+| User-facing release notes page | ✅ Implemented 2026-06-20 | `apps/web/app/(dashboard)/release-notes/page.tsx` |
+| Tenant admin management page | ✅ Implemented 2026-06-20 | `apps/web/app/(dashboard)/settings/release-notes/page.tsx` |
+| Superadmin management page | ✅ Implemented 2026-06-20 | `apps/web/app/(superadmin)/admin/release-notes/page.tsx` |
+| "What's New" nav link + badge | ✅ Implemented 2026-06-20 | `apps/web/components/WhatsNewNavLink.tsx` |
 
 ---
 
