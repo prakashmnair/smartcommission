@@ -27,9 +27,9 @@ steps:
     args:
       - build
       - '-t'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/web:$COMMIT_SHA'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:$COMMIT_SHA'
       - '-t'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/web:latest'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:latest'
       - '.'
     dir: 'apps/web'
 
@@ -38,7 +38,7 @@ steps:
     args:
       - push
       - '--all-tags'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/web'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app'
 
   # Run Prisma migrations via Cloud SQL Auth Proxy
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -54,7 +54,7 @@ steps:
           --network host \
           -v /cloudsql:/cloudsql \
           -e DATABASE_URL="$$DATABASE_DIRECT_URL" \
-          $_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/web:$COMMIT_SHA \
+          $_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:$COMMIT_SHA \
           sh -c 'npx prisma migrate deploy'
     secretEnv: ['DATABASE_DIRECT_URL']
 
@@ -65,7 +65,7 @@ steps:
       - run
       - deploy
       - smartcommission-web
-      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/web:$COMMIT_SHA'
+      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:$COMMIT_SHA'
       - '--region=$_REGION'
       - '--platform=managed'
       - '--allow-unauthenticated'
