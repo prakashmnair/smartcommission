@@ -101,7 +101,7 @@ availableSecrets:
 
 substitutions:
   _REGION: 'australia-southeast1'
-  _INSTANCE_CONNECTION_NAME: 'smartcommission-prod:australia-southeast1:smartcommission-db'
+  _INSTANCE_CONNECTION_NAME: 'prakash-shared:australia-southeast2:shared-db'
 
 serviceAccount: 'projects/smartcommission-prod/serviceAccounts/1028287218164@cloudbuild.gserviceaccount.com'
 

@@ -1,0 +1,9 @@
+Date,Category,Vendor,Description,Currency,Amount_Local,Amount_AUD,Type,Billing_Cycle,Payment_Method,Invoice_Ref,Notes
+2026-06-23,Infrastructure,Google Cloud Platform,Cloud Run `smartcommission` — (not yet deployed),AUD,,0.00,Estimate,Monthly,GCP Billing,,Pre-launch; update when deployed
+2026-06-23,Infrastructure,Google Cloud Platform,Shared DB allocation (1/7 of shared-db ~$28/mo),AUD,,4.00,Estimate,Monthly,GCP Billing,,Proportional share of prakash-shared/shared-db; update with actual
+2026-06-23,Infrastructure,Google Cloud Platform,Cloud Storage (3 buckets: imports/exports/evidence),AUD,,0.00,Estimate,Monthly,GCP Billing,,Currently empty; pay per use
+2026-06-23,Infrastructure,Google Cloud Platform,Artifact Registry — smartcommission repo,AUD,,0.30,Estimate,Monthly,GCP Billing,,Cleanup policy: keep last 10 images; update with actual
+2026-06-23,Infrastructure,Google Cloud Platform,Cloud Build — smartcommission-prod,AUD,,3.00,Estimate,Monthly,GCP Billing,,Occasional build runs; update with actual
+2026-06-23,Infrastructure,Google Cloud Platform,Secret Manager — smartcommission-prod,AUD,,2.00,Estimate,Monthly,GCP Billing,,Update with actual
+2026-06-23,Comms,Resend,Transactional email,AUD,,0.00,Estimate,Monthly,Resend,,Free tier (≤3,000 emails/mo)
+2026-06-23,Payments,Stripe,Payment processing,AUD,,0.00,Estimate,Per-transaction,Stripe,,1.7% + $0.30 per transaction; no monthly fee; pre-launch = $0

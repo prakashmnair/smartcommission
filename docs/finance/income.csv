@@ -1,0 +1,2 @@
+Date,Source,Type,Description,Currency,Amount_Local,Amount_AUD,Period,Status,Reference,Notes
+2026-06-23,Stripe,Subscription,Commission tracking plan fees,AUD,,0.00,June 2026,Pending,,Pre-launch; no revenue yet. Pull from Stripe Dashboard → Revenue monthly once live.

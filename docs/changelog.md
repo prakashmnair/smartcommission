@@ -5,6 +5,25 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-24 (Session 8 — Expert Review)
+
+### Added
+- `docs/review/smartcommission_review_20260624100000.md` — timestamped expert review for this session.
+
+### Changed
+- `docs/features.md` — added new issues U-008 (plans page missing empty state), P-009 (empty table header rendered with no rows); added roadmap items R-108 (add empty state CTA to plans page) and R-109 (audit all list pages for empty states); marked R-094 as ✅ DONE 2026-06-24 (storyboard.md confirmed present).
+- `docs/changelog.md` — this entry.
+
+### Notes
+- GCP Cloud Run still not deployed — no Cloud Run logs available. Cloud SQL instance `smartcommission-db` confirmed running (no new errors since 2026-06-23 review).
+- Stack versions re-confirmed current: Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma v7.8.0, Firebase 12/Admin 14. All canonical.
+- Docs coverage: all canonical template docs confirmed present in `smartcommission/docs/`. `docs/video/storyboard.md` confirmed present — R-094 closed.
+- Finance: no new costs or revenue since 2026-06-23. GCP billing close not due (mid-month). All finance entries current.
+- Cross-project audit: no new patterns propagated to SmartCommission this session. Previously fixed patterns (ThemeProvider, session cookie, spinner colours) confirmed not present as issues here.
+- Remaining open critical issues requiring action before first deploy: I-004 (Cloud Run), I-005/I-009 (Firebase Auth), I-010 (4 missing secrets), U-005/U-007 (no logout option), S-007 (API key bcrypt), S-021 (CSV formula injection).
+
+---
+
 ## 2026-06-23 (Session 7 — Expert Review)
 
 ### Changed
