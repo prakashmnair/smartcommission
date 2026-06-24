@@ -5,6 +5,16 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-24 (infra — Melbourne → Sydney DB migration + DB rename)
+
+### Changed
+- Cloud SQL database migrated from Melbourne (`prakash-shared:australia-southeast2:shared-db`) to Sydney (`prakash-shared:australia-southeast1:shared-db-sydney`) — 2026-06-24
+- Database renamed from `smartcommission_prod` → `smartcommission` on new Sydney instance
+- `smartcommission-db-url` secret updated to version 5 pointing to `shared-db-sydney` with db name `smartcommission`
+- `cloudbuild.yaml` `_INSTANCE_CONNECTION_NAME` updated to `prakash-shared:australia-southeast1:shared-db-sydney`
+- `gcp-setup.md` updated to reflect all infrastructure changes
+
+
 ## 2026-06-24 (Session 8 — Expert Review)
 
 ### Added

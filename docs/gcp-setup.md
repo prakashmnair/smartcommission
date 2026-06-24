@@ -40,7 +40,7 @@ Infrastructure configuration for SmartCommission on Google Cloud Platform.
 
 | Setting | Value |
 |---|---|
-| Service name | `smartcommission-web` |
+| Service name | `smartcommission` |
 | Region | `australia-southeast1` |
 | Min instances | 1 (avoid cold starts) |
 | Max instances | 10 (scale to demand) |
@@ -54,8 +54,8 @@ Infrastructure configuration for SmartCommission on Google Cloud Platform.
 ### Deploy command
 
 ```bash
-gcloud run deploy smartcommission-web \
-  --image australia-southeast1-docker.pkg.dev/smartcommission-prod/smartcommission/web:latest \
+gcloud run deploy smartcommission \
+  --image australia-southeast1-docker.pkg.dev/smartcommission-prod/smartcommission/app:latest \
   --region australia-southeast1 \
   --memory 1Gi \
   --cpu 2 \
@@ -75,7 +75,7 @@ gcloud run deploy smartcommission-web \
 
 | Setting | Value |
 |---|---|
-| Instance name | `smartcommission-db` |
+| Instance name | `shared-db-sydney` *(prakash-shared — shared PostgreSQL instance)* |
 | Database version | PostgreSQL 15 |
 | Tier | `db-g1-small` |
 | Region | `australia-southeast1` |
@@ -89,7 +89,7 @@ gcloud run deploy smartcommission-web \
 
 | Database | Purpose |
 |---|---|
-| `smartcommission_prod` | Production database |
+| `smartcommission` | Production database (on shared-db-sydney, prakash-shared) |
 | `smartcommission_staging` | Staging database (if staging env provisioned) |
 
 ### Connection pooling
@@ -130,7 +130,7 @@ Evidence files served via signed URLs (1-hour expiry) — never public URLs.
 | `smartcommission-calc-queue` | Calculation run jobs | 10 | 3 retries with exponential backoff |
 | `smartcommission-import-queue` | CSV import processing jobs | 20 | 3 retries with exponential backoff |
 | `smartcommission-email-queue` | Transactional email dispatch | 50 | 2 retries |
-| `smartcommission-webhook-queue` | Outbound webhook delivery | 50 | 3 retries (5s, 30s, 5min) |
+| `smartcommissionhook-queue` | Outbound webhook delivery | 50 | 3 retries (5s, 30s, 5min) |
 
 ---
 
@@ -202,7 +202,7 @@ Build config: `smartcommission/cloudbuild.yaml`.
 1. Write `apps/web/.env.production` from Secret Manager — injects `NEXT_PUBLIC_*` Firebase vars so they are baked into the Next.js bundle at build time
 2. Docker build → tag with `$COMMIT_SHA` and `latest` → push to Artifact Registry
 3. Run `prisma migrate deploy` via Cloud SQL Auth Proxy (uses `DATABASE_DIRECT_URL` secret)
-4. `gcloud run deploy smartcommission-web` — attaches all runtime secrets + `OIDC_ISSUER` env var
+4. `gcloud run deploy smartcommission` — attaches all runtime secrets + `OIDC_ISSUER` env var
 
 ### First deploy pre-requisites (still outstanding)
 - Firebase project set up and all 8 `REPLACE_ME` Firebase secrets populated
@@ -244,8 +244,8 @@ Build config: `smartcommission/cloudbuild.yaml`.
 | Service | Estimated monthly cost (AUD) |
 |---|---|
 | Cloud Run (1 min instance, when deployed) | ~AUD 40 |
-| Cloud SQL db-g1-small (downsized 2026-06-20) | ~AUD 38 |
-| Cloud SQL disk storage (10 GB SSD) | ~AUD 3 |
+| Cloud SQL shared-db-sydney (prakash-shared, shared cost) | ~AUD 0 additional |
+| Cloud SQL disk storage | ~AUD 0 additional (shared instance) |
 | Cloud Tasks | ~AUD 5 |
 | Firebase Authentication | Free tier (up to 50K MAU) |
 | Secret Manager | ~AUD 2 |
@@ -264,7 +264,7 @@ Costs will increase significantly at scale. Review monthly and right-size as nee
 |---|---|---|---|---|
 | **I-001** | High | In Progress | No CI/CD pipeline yet | `cloudbuild.yaml` created. GitHub connection needs `secretmanager.admin` granted to `service-1028287218164@gcp-sa-cloudbuild.iam.gserviceaccount.com`, then trigger created via console/CLI. |
 | **I-002** | Medium | Open | No staging environment | Staging environment not yet provisioned. All testing done locally. |
-| **I-003** | High | ✅ Fixed 2026-06-20 | Cloud SQL provisioned | Instance `smartcommission-db` created (PostgreSQL 15, `db-custom-2-7680`, `australia-southeast1`). Database `smartcommission_prod` and user `smartcommission` created. DB URLs in Secret Manager (version 2). |
+| **I-003** | High | ✅ Fixed 2026-06-20 | Cloud SQL provisioned | Migrated to shared instance `prakash-shared:australia-southeast1:shared-db-sydney` (PostgreSQL 15, `db-custom-2-7680`, `australia-southeast1`). Database `smartcommission` and user `smartcommission` created. DB URLs in Secret Manager (version 2). |
 | **I-004** | High | Open | Cloud Run service not deployed | Waiting on Cloud SQL + Cloud Build trigger + real secrets before first deploy. |
 | **I-005** | Low | In Progress | Firebase Auth providers not yet enabled | Firebase project created, Admin SDK key in Secret Manager. Must visit [Firebase Console → Authentication → Get started](https://console.firebase.google.com/project/smartcommission-prod/authentication) and enable Email/Password + Google Sign-In. Cannot be done via CLI (requires ToS acceptance in browser). |
 | **I-006** | Medium | In Progress | Some secrets still need real values | Outstanding: Gemini key, Stripe secret, Stripe webhook secret, OXR key, Resend key. All Firebase secrets are now real values. |
