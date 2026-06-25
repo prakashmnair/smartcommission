@@ -24,13 +24,16 @@ steps:
 
   # Build the Docker image (NEXT_PUBLIC_* baked in via .env.production above)
   - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: bash
     args:
-      - build
-      - '-t'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:$COMMIT_SHA'
-      - '-t'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:latest'
-      - '.'
+      - '-c'
+      - |
+        DOCKER_BUILDKIT=1 docker build \
+          -t $_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:$COMMIT_SHA \
+          -t $_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:latest \
+          --cache-from $_REGION-docker.pkg.dev/$PROJECT_ID/smartcommission/app:latest \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
+          .
     dir: 'apps/web'
 
   # Push the image
@@ -109,3 +112,4 @@ substitutions:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
