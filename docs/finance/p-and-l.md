@@ -1,6 +1,6 @@
 # SmartCommission — Profit & Loss
 
-> Updated: 2026-06-23 | Currency: AUD | Rate: 1 USD ≈ 1.55 AUD
+> Updated: 2026-06-26 | Currency: AUD | Rate: 1 USD ≈ 1.55 AUD
 > **Source files:** `docs/finance/expenses.csv` · `docs/finance/income.csv`
 > **Aggregate view (all projects):** `admin/finance/p-and-l.md`
 
@@ -29,8 +29,8 @@
 
 | Item | Est. Monthly (AUD) | Actual (AUD) | Notes |
 |---|---|---|---|
-| Cloud Run (not deployed) | $0.00 | $0.00 | Pre-launch |
-| Shared DB (1/7 of shared-db) | ~$4.00 | ⏳ | prakash-shared/shared-db |
+| Cloud Run (deployed 2026-06-24) | ~$0.50 | ⏳ | min-instances=0; cost grows with traffic |
+| Shared DB (1/7 of shared-db-sydney) | ~$4.00 | ⏳ | prakash-shared/shared-db-sydney |
 | Cloud Storage (3 buckets) | $0.00 | ⏳ | Currently empty |
 | Artifact Registry | ~$0.30 | ⏳ | |
 | Cloud Build | ~$3.00 | ⏳ | Occasional build runs |

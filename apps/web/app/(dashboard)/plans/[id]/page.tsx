@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 
 type Plan = {
@@ -52,9 +52,17 @@ export default function PlanDetailPage() {
 
   if (error || !plan) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-red-500 text-sm">{error || 'Plan not found'}</p>
-        <Link href="/plans" className="mt-3 text-indigo-600 hover:text-indigo-700 text-sm font-medium">Back to Plans</Link>
+      <div className="p-6">
+        <Link
+          href="/plans"
+          aria-label="Back to Plans"
+          className="p-1.5 -ml-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors inline-flex"
+        >
+          <ChevronLeft size={20} />
+        </Link>
+        <div className="text-center mt-8">
+          <p className="text-red-500 text-sm">{error || 'Plan not found'}</p>
+        </div>
       </div>
     )
   }
@@ -64,8 +72,12 @@ export default function PlanDetailPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/plans" className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          <ArrowLeft size={18} className="text-slate-600 dark:text-slate-400" />
+        <Link
+          href="/plans"
+          aria-label="Back to Plans"
+          className="p-1.5 -ml-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <ChevronLeft size={20} />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-3">

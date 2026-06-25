@@ -5,6 +5,50 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-26 (Session 10 — Expert Review)
+
+### Added
+- `apps/web/app/api/health/route.ts` — new `/api/health` endpoint (unauthenticated, DB probe via `SELECT 1`, returns `{ status, timestamp }` with `Cache-Control: no-store`). Fixes I-014 (health endpoint missing). Required for GCP Monitoring uptime alerts and Cloud Run readiness probes.
+- `apps/web/tests/api/health.test.ts` — IT-HEALTH-001–003 integration tests covering unauthenticated access, response shape, and Cache-Control header.
+- GCP Monitoring uptime check `smartcommission-api-health-bkZvLcNxj_k` created pointing to `https://smartcommission-1028287218164.australia-southeast1.run.app/api/health` (5-minute interval, SSL validation on).
+
+### Changed
+- `docs/features.md` — added I-014 (✅ Fixed), I-015, I-016, I-017, S-022, B-003; added R-113 (✅ DONE), R-114, R-115, R-116; extended QA gaps with health endpoint and dashboard stat card tests.
+- `docs/changelog.md` — this entry.
+
+### Notes
+- **Build status:** Latest build `46e3013e` (2026-06-24) **SUCCEEDED**. Cloud Run service `smartcommission` is live at `https://smartcommission-1028287218164.australia-southeast1.run.app`. Root URL returns 307 redirect (→ /login). Previously-failing builds `7fea03f2` and `429b3a22` were Secret Manager permission issues on older commits — I-012/I-013 were resolved before the successful 2026-06-24 build.
+- **GCP Monitoring:** Two alert policies confirmed active (5xx error rate, p95 latency). Uptime check added this session. Alert policy for the uptime check still needs to be linked (R-114, I-015).
+- **npm audit:** 31 vulnerabilities (0 HIGH/CRITICAL, 1 low, 30 moderate) — all in `firebase-admin → uuid` dependency chain. No immediate action; monitor for firebase-admin patch. Logged as S-022.
+- **`cloudbuild.yaml`:** Confirmed: `prisma generate --config prisma.config.ts` runs before migrations AND before `npm run build`. Standalone server started from `/workspace/apps/web/.next/standalone/` with `node server.js` (not `npm start`). Both CI/CD correctness requirements satisfied.
+- **`scripts/dev-local.sh`:** Referenced in package.json but file does not exist. Logged as I-017. Running `npm run dev:local` will error.
+- **Stack:** All canonical — Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma 7.8.0, Firebase 12.15.0, Firebase Admin 14.0.0.
+- **No new UX regressions.** All previously fixed issues (ChevronLeft navigation, dark mode tokens, min-h-dvh, Toast/ConfirmDialog) remain in correct state.
+- **Finance:** No new costs or revenue. GCP billing close not due (26th of month). All finance entries current.
+
+---
+
+## 2026-06-25 (Session 9 — Expert Review)
+
+### Fixed
+- `apps/web/app/(dashboard)/plans/[id]/page.tsx` — replaced `ArrowLeft` import with `ChevronLeft`; replaced canonical className on back-nav button; replaced text link "Back to Plans" in error state with ChevronLeft icon-only button + `aria-label` (U-009, U-010, R-111)
+
+### Changed
+- `docs/features.md` — added new issues I-013 (Cloud Build still failing 2026-06-24), U-009 (ArrowLeft icon violation), U-010 (text back link in error state); added roadmap items R-110 (Cloud Build IAM fix) and R-111 (ArrowLeft → ChevronLeft — now ✅ DONE 2026-06-25); marked U-009, U-010 as ✅ Fixed 2026-06-25.
+- `docs/changelog.md` — this entry.
+
+### Notes
+- GCP Cloud Build: build `7fea03f2` (2026-06-24) FAILED — same Secret Manager permission error as build `429b3a22` (2026-06-21). I-012 fix has NOT been applied. I-013 logged as new issue. Blocker: no deploys possible until Cloud Build SA gets `roles/secretmanager.secretAccessor`.
+- Cloud Run: still not deployed. No application error logs available to review.
+- Stack versions re-confirmed current: Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma v7.8.0, Firebase 12/Admin 14. All canonical.
+- API routes: all findMany calls properly paginated or capped. Monaco editor lazy-loaded via `next/dynamic({ ssr: false })`. No `window.alert/confirm/prompt` in application code. No `min-h-screen` or `100vh` remaining.
+- Docs coverage: all canonical template docs confirmed present. No missing doc files.
+- Finance: no new costs or revenue since 2026-06-24. GCP billing close not due (mid-month). All finance entries current.
+- Legal compliance: last reviewed 2026-06-20. Next review due 2026-09-20. No new gaps found.
+- Remaining open critical/high issues before first deploy: I-012/I-013 (Cloud Build SA), I-004 (Cloud Run not deployed), I-009 (Firebase Auth), I-010 (4 missing secrets), U-005/U-007 (no logout), S-007 (bcrypt upgrade), S-021 (CSV formula injection), R-099 (PITR re-enable).
+
+---
+
 ## 2026-06-24 (infra — Melbourne → Sydney DB migration + DB rename)
 
 ### Changed

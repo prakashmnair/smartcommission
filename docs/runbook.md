@@ -39,9 +39,8 @@ App runs at `http://localhost:3000`.
 ### Manual deploy (emergency)
 
 ```bash
-PATH="/opt/homebrew/bin:/Users/prakashmnair/google-cloud-sdk/bin:$PATH"
-gcloud run deploy smartcommission-web \
-  --image gcr.io/smartcommission/web:latest \
+gcloud run deploy smartcommission \
+  --image australia-southeast1-docker.pkg.dev/smartcommission-prod/smartcommission/app:latest \
   --region australia-southeast1 \
   --project smartcommission-prod
 ```
@@ -49,12 +48,32 @@ gcloud run deploy smartcommission-web \
 ### Rollback
 
 ```bash
-gcloud run services update-traffic smartcommission-web \
+gcloud run services update-traffic smartcommission \
   --to-revisions=PREVIOUS_REVISION=100 \
-  --region australia-southeast1
+  --region australia-southeast1 \
+  --project smartcommission-prod
 ```
 
-Find the previous revision name in GCP Console → Cloud Run → Revisions.
+Find the previous revision name: `gcloud run revisions list --service=smartcommission --region=australia-southeast1 --project=smartcommission-prod`
+
+---
+
+## Health Check
+
+**Endpoint:** `GET /api/health`
+**Public:** Yes (no authentication required)
+**Response:** `{ status: 'ok', timestamp: '...' }` → 200 OK; `{ status: 'error', message: 'Database unreachable' }` → 503
+
+Used by:
+- GCP Cloud Monitoring uptime check `smartcommission-api-health-bkZvLcNxj_k` (5-min interval)
+- Cloud Run liveness probes
+
+### If health check fails
+
+1. Check Cloud Run logs: `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=smartcommission AND severity>=ERROR" --limit=20 --project=smartcommission-prod`
+2. If DB unreachable: check Cloud SQL proxy / Cloud SQL instance health
+3. If instance count = 0: verify min-instances setting and Cloud Run service is running
+4. Roll back to last good revision if DB-related errors persist
 
 ---
 

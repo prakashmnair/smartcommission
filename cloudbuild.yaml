@@ -87,6 +87,9 @@ steps:
         # Install dependencies
         npm ci
 
+        # Generate Prisma client explicitly — postinstall hook may not fire in CI
+        node node_modules/.bin/prisma generate --config prisma.config.ts
+
         # Run Prisma migrations
         node node_modules/.bin/prisma migrate deploy --config prisma.config.ts
 
@@ -111,8 +114,9 @@ steps:
         # Build the Next.js app
         npm run build
 
-        # Start the Next.js server in the background
-        npm start &
+        # Start standalone Next.js server (output: standalone — must use node server.js, not npm start)
+        # smartcommission is a monorepo: standalone output is under apps/web/.next/standalone/
+        (cd /workspace/apps/web/.next/standalone && PORT=3000 HOSTNAME=0.0.0.0 node server.js) &
         SERVER_PID=$!
 
         # Wait for the server to be ready (up to 60 s)

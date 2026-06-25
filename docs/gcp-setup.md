@@ -19,7 +19,7 @@ Infrastructure configuration for SmartCommission on Google Cloud Platform.
 
 | Service | Purpose | Status |
 |---|---|---|
-| Cloud Run | Host the Next.js application | ⬜ Not yet deployed |
+| Cloud Run | Host the Next.js application | ✅ Deployed (2026-06-24, revision `smartcommission-00001-js2`) |
 | Cloud SQL (PostgreSQL 15) | Primary database | 🔄 Provisioning (`smartcommission-db`) |
 | Cloud Build | CI/CD pipeline | ✅ Trigger live (`smartcommission-deploy`, fires on push to `main`) |
 | Artifact Registry | Docker image storage | ✅ Created (`smartcommission` repo) |
@@ -42,10 +42,10 @@ Infrastructure configuration for SmartCommission on Google Cloud Platform.
 |---|---|
 | Service name | `smartcommission` |
 | Region | `australia-southeast1` |
-| Min instances | 1 (avoid cold starts) |
-| Max instances | 10 (scale to demand) |
+| Min instances | 0 (pre-launch: cost saving; increase to 1 when live users onboard) |
+| Max instances | 5 (as deployed via cloudbuild.yaml — increase when traffic warrants) |
 | Memory | 1 GiB |
-| CPU | 2 vCPU |
+| CPU | 1 vCPU (pre-launch; increase to 2 under load) |
 | Concurrency | 80 |
 | Timeout | 300s |
 | Ingress | All (public internet) |
