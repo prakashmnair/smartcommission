@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "esModuleInterop": true,
+    "noEmit": false,
+    "outDir": ".jest-out",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "tests/**/*.ts",
+    "lib/**/*.ts",
+    "app/api/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
