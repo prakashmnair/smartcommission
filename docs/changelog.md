@@ -5,6 +5,25 @@ Format: reverse-chronological `## YYYY-MM-DD` with Added / Changed / Fixed / Sec
 
 ---
 
+## 2026-06-29 (Session 11 — Expert Review)
+
+### Changed
+- `docs/features.md` — marked U-006 (mobile bottom nav) and R-102 as ✅ Fixed/DONE 2026-06-29 (feature confirmed implemented in code); added new issues I-019, I-020, I-021, U-012, U-013, U-014, U-015, S-023; added roadmap R-120, R-121, R-122.
+- `docs/changelog.md` — this entry.
+- `docs/review/smartcommission_review_20260629000000.md` — full review file created.
+
+### Notes
+- **CRITICAL I-019:** `/api/health` endpoint added 2026-06-26 is NOT deployed. Last Cloud Run revision is `smartcommission-00001-js2` (2026-06-24). GCP uptime check and warmup scheduler both hitting 404 continuously. Action required: push code to trigger Cloud Build.
+- **UX I-012:** Three superadmin pages confirmed using wrong spinner colour (`border-indigo-500` instead of `border-violet-500`). Small fix.
+- **Stack:** All versions remain canonical (Next.js 16.2.9, React 19.2.4, Tailwind v4, Prisma 7.8.0, Firebase 12/14). No upgrades needed.
+- **npm audit:** 0 HIGH/CRITICAL, 30 moderate (firebase-admin → uuid chain). Unchanged from session 10.
+- **Security:** S-007 (SHA-256 API key hashing) and S-021 (CSV formula injection) remain open. Both must be fixed before production. New S-023 logged (isSuperAdmin email guard robustness).
+- **Mobile nav:** U-006/R-102 closed — MobileBottomNav confirmed implemented in dashboard layout with correct env(safe-area-inset-bottom) and max-w-[430px].
+- **Docs:** All 28 canonical template docs present. No missing files.
+- **Legal:** AU superannuation SG rule change (R-164) effective July 2026 — early legal review warranted before AU customer go-live.
+
+---
+
 ## 2026-06-26 (Session 10 — Expert Review)
 
 ### Added

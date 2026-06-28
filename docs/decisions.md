@@ -324,3 +324,129 @@ Use the full `__context` cookie pattern from `admin/docs/templates/role-switchin
 - All API routes must call `getActiveContext()` not `getUserFromRequest()` directly — to ensure role and org are in sync.
 - Proxying (superadmin impersonates a user) uses a separate amber `ProxyBanner` and a 2-hour cookie lifetime.
 - Security events logged: `CONTEXT_SWITCH` (INFO) and `PROXY_STARTED` (CRITICAL) / `PROXY_STOPPED` (INFO).
+
+---
+
+## ADR-010: Calculation Engine — Correctness Over Speed, Decomposed Before Built
+
+**Date:** 2026-06-26
+**Status:** Accepted
+
+### Context
+
+R-009 (Calculation engine v1) appears as a single roadmap item but represents at least five distinct engineering problems that each carry their own edge cases and failure modes:
+
+1. **Rule evaluator** — fires typed PlanRules (FLAT_RATE, TIERED_PROGRESSIVE, TIERED_RETROACTIVE, ACCELERATOR, CAP, CLAWBACK, etc.) against a credited amount for a single rep on a single plan
+2. **Transaction processor** — ingests a transaction, resolves CreditAllocations, and routes each credit to the correct rep × plan combination, handling multi-plan enrollment (R-208) from the start
+3. **Period aggregator** — accumulates credits across a period, applies cumulative vs periodic attainment (R-206), handles partial periods (pro-ration, ramp schedules R-200)
+4. **Retroactive recalculation engine** — re-processes a closed period when source data changes; produces delta records; preserves original records immutably
+5. **Calculation run orchestrator** — schedules, executes, checkpoints, and recovers runs; reports status and error details per transaction
+
+The ICM product graveyard is full of tools with beautiful UX that shipped engines that were "mostly correct." A single calculation error that causes a rep to be underpaid — or worse, overpaid and then recovered — destroys trust that cannot be rebuilt. The product's core value proposition is that the number is right. If that fails, nothing else matters.
+
+### Decision
+
+The calculation engine is built in the order above (evaluator → processor → aggregator → retroactive engine → orchestrator), with each component having a complete test suite before the next is started. The quality bar is:
+
+- Every plan rule type has exhaustive test cases including edge cases (zero quota, 0% attainment, 100% attainment exactly, >500% attainment, multi-currency rounding, retroactive amendments crossing period boundaries)
+- Multi-plan enrollment (R-208) is supported from the first sprint — not added later — because retrofitting it requires rewriting the processor
+- Cumulative vs periodic attainment (R-206) is supported from the first sprint for the same reason
+- Threshold to earn (R-202) is a first-class rule type, not an afterthought tier
+- No customer sees the calculation engine until it produces the correct result on at least 3 real customer plan scenarios validated against a spreadsheet baseline
+
+**Speed is not a success criterion for the calculation engine. Correctness is.** If it takes 3× longer to build than estimated because edge cases keep surfacing, that is the right outcome.
+
+### Consequences
+
+- Phase 1 timeline is extended to accommodate this quality bar. This is accepted.
+- A "calculation engine validation" milestone is added before any customer beta: run 3+ real customer plans (sourced from reference customers or publicly available plan templates) through the engine and verify outputs against manually-calculated spreadsheet baselines.
+- The `auditTrail` JSON field on `EarningsRecord` must capture the full step-by-step trace (which rules fired, what values were used, what intermediate results were produced) from the very first implementation — not added later.
+- Every calculation edge case discovered in production that was not covered by the test suite is added to the test suite before the fix is merged.
+
+---
+
+## ADR-011: Market Strategy — Australia First, Then UK, Then US
+
+**Date:** 2026-06-26
+**Status:** Accepted
+
+### Context
+
+SmartCommission could target any geography from day 1. The ICM market exists globally. However, attempting to be globally competitive with an early-stage product and a small team results in a product that is mediocre everywhere — insufficient compliance depth for any specific market, no local reference customers, and no concentrated go-to-market motion.
+
+Australia presents a specific opportunity: it is underserved by all major ICM vendors (Xactly, Varicent, CaptivateIQ, Spiff are all US-centric), has specific regulatory requirements that US tools do not handle (superannuation on commission, state-based payroll tax, Fair Work Act statement requirements), and has a founder with local market knowledge. Winning Australia deeply creates a defensible position before expansion.
+
+UK is the natural second market: similar regulatory environment (employment law, PAYE, FCA for financial services), similar mid-market segment structure, underserved by AU-based and US-based tools alike.
+
+US is the largest market but the most competitive. Entering the US before the product is proven in AU and UK risks burning runway on a sales motion that requires competing directly with Salesforce Spiff, CaptivateIQ, and Xactly on their home turf.
+
+### Decision
+
+**Phase 1 (MVP to first 50 customers): Australia only.** All compliance features, payroll integrations, and customer success resources are focused on AU. Target: AU SMB to mid-market, 10–500 sales reps, any CRM.
+
+**Phase 2 (first 50–200 customers): Add UK.** UK FCA deferral rules (R-167), UK PAYE, UK employment law statement requirements (R-227), Xero/Sage payroll integrations. UK is structurally similar to AU and leverages the same compliance architecture.
+
+**Phase 3 (200+ customers, Series A): Add US.** California-specific compliance (R-166, R-168), US payroll integrations (ADP, Workday), Salesforce connector (already in roadmap as R-043). By this point the product is proven and can compete on reference customers and depth rather than brand awareness alone.
+
+### Consequences
+
+- Marketing, SEO, and paid acquisition are focused on AU search terms and AU-specific compliance pain points first.
+- Pricing is set in AUD for the AU market and converted for UK/US — not USD-primary.
+- The first design partner programme targets AU-based sales teams.
+- US features (California clawback guard R-166, US supplemental withholding R-168) remain in the roadmap as Phase 4 but are not prioritised ahead of AU compliance completeness.
+- All early case studies and testimonials are from AU customers.
+
+---
+
+## ADR-012: Data Collection Strategy — Build the Anonymised Dataset From Day 1
+
+**Date:** 2026-06-26
+**Status:** Accepted
+
+### Context
+
+The long-term competitive moat for SmartCommission is an anonymised aggregate dataset of commission plans, quota levels, attainment distributions, and earnings patterns across all customer organisations. This dataset enables:
+
+- **Benchmarking (R-142):** "Your AE OTE is 12% below median for B2B SaaS in APAC"
+- **Plan optimisation (R-065):** "Plans with accelerators at 110% vs 100% threshold produce 17% higher attainment rates"
+- **Top performer DNA (R-191):** What plan structures correlate with highest attainment?
+- **Quota calibration (R-221):** Industry-standard quota-to-OTE ratios by role and segment
+
+This is SmartCommission's version of Xactly's 20-year data advantage — but reachable in 2–3 years if the data strategy is right from the start. Xactly's benchmarking dataset is the primary reason enterprise customers renew despite the cost and complexity. Building this dataset is not a Phase 4 problem — it requires Day 1 decisions.
+
+### Decision
+
+From the first production deployment, SmartCommission will collect anonymised aggregate signals on all customer organisations under the following rules:
+
+**What is collected:**
+- Plan structure metadata (rule types used, tier count, accelerator thresholds, cap levels, plan type distribution)
+- Quota-to-OTE ratios per role type (anonymised, no rep names or personal data)
+- Attainment distribution per plan (percentile bands — not individual earnings amounts)
+- Period-close attainment percentages (what % of reps hit 100%, 125%, etc.)
+- Dispute frequency and root cause category per plan type
+- Time-to-first-calculation (onboarding health metric)
+
+**What is never collected for aggregate use:**
+- Individual rep names, emails, or identifiers
+- Individual earnings amounts
+- Customer organisation names or identifiers
+- Deal names or account names
+
+**Legal basis:**
+- AU Privacy Act (APP 6): collection is disclosed in the Privacy Policy as "de-identified aggregate analytics to improve the SmartCommission platform." Customers consent to this in the Terms of Service.
+- GDPR (EU/UK): aggregate anonymised data that cannot be re-identified does not constitute personal data under GDPR Article 4. The anonymisation pipeline must be verified to be irreversible before any EU/UK data is included.
+- Opt-out: enterprise customers on the ENTERPRISE plan can opt out of aggregate data collection. This is disclosed in the Terms of Service and configurable in Organisation settings.
+
+**Implementation:**
+- A background `analytics_events` table captures plan structure and attainment events with no PII
+- A nightly job aggregates these into the `platform_benchmarks` table with k-anonymity (no aggregate shown if fewer than 10 orgs contribute to a segment)
+- `lib/analytics.ts` with `trackPlanEvent()` and `trackAttainmentEvent()` utilities wired into plan publish and calculation run completion
+
+### Consequences
+
+- Privacy Policy must disclose aggregate analytics collection before first customer signup (linked to R-083).
+- Terms of Service must include explicit consent to aggregate data collection (linked to R-083).
+- `analytics_events` and `platform_benchmarks` tables added to Prisma schema before first production deployment.
+- `lib/analytics.ts` is an MVP deliverable, not a Phase 4 deliverable.
+- Opt-out toggle added to Organisation settings — even if the benchmarking UI is not built until Phase 3, the data pipeline runs from day 1.
+- Every engineer on the platform understands that `analytics_events` must never contain PII — enforced by a lint rule that flags direct writes of `userId`, `email`, or `name` fields to that table.

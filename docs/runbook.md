@@ -281,3 +281,47 @@ gcloud sql instances restore-backup smartcommission-db \
 | SUPER_ADMIN | SmartCommission admin console, impersonation (with audit log) |
 | DBA | Direct Cloud SQL access (read-only in production) |
 | Security officer | Cloud Logging read, audit log access |
+
+---
+
+## Cold Start Management
+
+### Background
+
+Cloud Run `min-instances` is set to 0 (scale-to-zero). When idle the service shuts down, causing the next request to wait 3–5 seconds (cold start) covering all assets.
+
+### Current mitigation: warmup ping (Cloud Scheduler)
+
+A Cloud Scheduler job pings `/api/health` every 5 minutes to keep the instance warm:
+
+```
+Job name:  smartcommission-warmup
+Schedule:  */5 * * * * (every 5 minutes, UTC)
+Target:    POST https://smartcommission-pw4jtnhsgq-ts.a.run.app/api/health
+Project:   smartcommission-prod
+Location:  australia-southeast1
+```
+
+Inspect or trigger manually:
+```bash
+gcloud scheduler jobs describe smartcommission-warmup \
+  --location=australia-southeast1 --project=smartcommission-prod
+
+gcloud scheduler jobs run smartcommission-warmup \
+  --location=australia-southeast1 --project=smartcommission-prod
+```
+
+**Limitation:** GCP may still evict idle instances between pings. Rare but possible.
+
+### Permanent fix (deferred): min-instances=1
+
+When traffic justifies the cost (~$15–20 AUD/month):
+
+```bash
+gcloud run services update smartcommission \
+  --min-instances=1 \
+  --project=smartcommission-prod \
+  --region=australia-southeast1
+```
+
+See roadmap for the tracked item to revisit this decision.
