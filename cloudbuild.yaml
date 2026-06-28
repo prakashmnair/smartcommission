@@ -130,10 +130,10 @@ steps:
         TEST_EXIT=$?
 
         # Clean up
-        kill $SERVER_PID 2>/dev/null || true
-        kill $PROXY_PID 2>/dev/null || true
+        kill $$SERVER_PID 2>/dev/null || true
+        kill $$PROXY_PID 2>/dev/null || true
 
-        exit $TEST_EXIT
+        exit $$TEST_EXIT
 
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
